@@ -48,7 +48,8 @@ module.exports = {
     ***************************************************************************/
     default: {
       adapter: 'sails-mongo',
-      url: 'mongodb+srv://bietdoivocuc:2QlMIsGPmS1B5osJ@cluster0.maidsvt.mongodb.net/server?retryWrites=true&w=majority'
+      url: 'mongodb+srv://bietdoivocuc:2QlMIsGPmS1B5osJ@cluster0.maidsvt.mongodb.net/server?retryWrites=true&w=majority',
+      ssl: false
       //--------------------------------------------------------------------------
       //  /\   To avoid checking it in to version control, you might opt to set
       //  ||   sensitive credentials like `url` using an environment variable.
