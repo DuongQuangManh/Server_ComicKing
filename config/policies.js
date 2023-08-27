@@ -19,4 +19,6 @@ module.exports.policies = {
 
   // '*': true,
 
+  AuthController: {
+  }
 };

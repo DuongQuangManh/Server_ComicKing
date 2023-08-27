@@ -1,3 +1,4 @@
+require('ts-node/register');
 /**
  * app.js
  *
@@ -48,7 +49,8 @@ try {
   console.error('(It even uses your app directory\'s local Sails install, if possible.)');
   return;
 }//-•
-
+var dotenv = require('dotenv')
+dotenv.config()
 
 // Start server
 sails.lift(rc('sails'));
