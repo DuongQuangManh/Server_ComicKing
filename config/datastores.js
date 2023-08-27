@@ -49,8 +49,7 @@ module.exports.datastores = {
     *                                                                          *
     ***************************************************************************/
     adapter: 'sails-mongo',
-    url: 'mongodb+srv://bietdoivocuc:bietdoivocuc@cluster0.bnckpmu.mongodb.net/?retryWrites=true&w=majority'
-
+    url: 'mongodb+srv://bietdoivocuc:2QlMIsGPmS1B5osJ@cluster0.maidsvt.mongodb.net/server?retryWrites=true&w=majority'
   },
 
 
