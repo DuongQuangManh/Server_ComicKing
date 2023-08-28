@@ -1,6 +1,8 @@
-export default {
+export const OTP_TYPES = {
     LOGIN_OTP: 'LOGIN_OTP',
     REGISTER_OTP: 'REGISTER_OTP',
     CHANGE_PIN_OTP: 'CHANGE_PIN_OTP',
     RESET_PIN_OTP: 'RESET_PIN_OTP'
 }
+
+export const OTP_TIME_EXPIRE = 10 * 60 * 1000

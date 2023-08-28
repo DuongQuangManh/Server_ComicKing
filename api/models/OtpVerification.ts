@@ -12,13 +12,15 @@ module.exports = {
         //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
         //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-        email: { type: 'string', required: true },
+        email: { type: 'string', unique: true, required: true },
 
         code: { type: 'string', required: true },
 
         expireAt: { type: 'number', required: true },
 
-        otpType: { type: 'string', required: true }
+        otpType: { type: 'string', required: true },
+
+        data: { type: 'json', defaultsTo: {} }
 
         //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
         //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
