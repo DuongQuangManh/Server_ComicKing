@@ -6,12 +6,19 @@
  */
 
 import { AppError } from "../custom/customClass";
-import { checkPassword, generateToken, hashPassword } from "../services/AuthService";
+import {
+    checkPassword,
+    generateToken,
+    hashPassword,
+    sendOtpEmail,
+    generateOtp
+} from "../services/AuthService";
 import tryCatch from "../utils/tryCatch";
 import { loginValidation, registerValidation } from "../validations/user/user.validation";
 import { generateUsername } from 'unique-username-generator'
 
 declare var User: any
+declare var Otp: any
 
 module.exports = {
 
@@ -38,34 +45,45 @@ module.exports = {
         })
     }),
 
+    registerVerifyOtp: tryCatch(async (req, res) => {
+
+    }),
+
     login: tryCatch(async (req, res) => {
         const { body } = req
         loginValidation(body)
 
         const exitsUser = await User.findOne({
-            where: {
-                email: body.email
-            },
+            where: { email: body.email },
             select: ['email', 'nickName', 'password']
         })
-        if (!exitsUser) {
+        if (!exitsUser)
             throw new AppError(400, "Email không tồn tại! Vui lòng thử email khác.", 400)
-        }
 
         const isPasswordMatch = checkPassword(exitsUser.password, body.password)
-        if (!isPasswordMatch) {
+        if (!isPasswordMatch)
             throw new AppError(400, "Email hoặc mật khẩu không hợp lệ.", 400)
-        }
 
         const accessToken = generateToken({ email: exitsUser.email, nickName: exitsUser.nickName })
+
+        const otpExpiration = Date.now() + 2 * 60 * 1000;
+        const otp = generateOtp()
+
+        sendOtpEmail("123456", "legiatuan03@gmail.com")
 
         return res.status(200).json({
             err: 200,
             msg: 'Đăng nhập thành công',
             data: { accessToken }
         })
+    }),
+
+    loginVerifyOtp: tryCatch((req, res, next) => {
+
+    }),
+
+    loginWithGoogle: tryCatch((req, res, next) => {
+
     })
-
-
 };
 
