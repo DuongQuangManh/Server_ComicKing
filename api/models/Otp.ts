@@ -1,5 +1,5 @@
 /**
- * User.js
+ * Otp.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -12,36 +12,15 @@ module.exports = {
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-    fullName: {
-      type: 'string',
-      required: true
-    },
+    userId: { type: 'string', required: true },
 
-    email: {
-      type: 'string',
-      required: true,
-      unique: true,
-      isEmail: true,
-      maxLength: 255,
-    },
+    email: { type: 'string', required: true },
 
-    nickName: {
-      type: 'string',
-      unique: true,
-      maxLength: 32
-    },
+    code: { type: 'string', required: true },
 
-    password: {
-      type: 'string',
-      minLength: 6,
-      maxLength: 255,
-      required: true
-    },
+    expireAt: { type: 'number', required: true },
 
-    imagePath: {
-      type: 'string',
-      defaultsTo: ''
-    }
+    status: { type: 'string', required: true }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
