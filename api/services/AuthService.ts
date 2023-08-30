@@ -69,7 +69,6 @@ export const otpVerificationhandler = async (
     const otpVerify = isCreate ?
         await OtpVerification.updateOne({ email }).set(otpObj)
         : await OtpVerification.create(otpObj).fetch()
-    console.log(otpVerify)
     if (!otpVerify)
         throw new AppError(500, 'Không thể cập nhật mã otp vui lòng thử lại.', 500)
 
@@ -80,7 +79,7 @@ export const getValidVerifyOtp = async (email: string, code: string, type: strin
     const existOtp = await OtpVerification.findOne({ email })
     if (!existOtp)
         throw new AppError(400, 'Email không tồn tại Otp.', 400)
-    console.log(existOtp.otpType)
+
     if (existOtp.otpType != type)
         throw new AppError(400, 'Otp type không hợp lệ.', 400)
 

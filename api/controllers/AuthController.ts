@@ -111,8 +111,7 @@ module.exports = {
 
         checkPassword(exitsUser.password, body.password)
 
-        let needVerifyOtp = body.needVerifyOtp ?? true
-        if (needVerifyOtp) {
+        if (body.needVerifyOtp == undefined || body.needVerifyOtp) {
             const existOtp = await OtpVerification.findOne({ email: body.email })
             // update verifycation object sent to user
             await otpVerificationhandler(
