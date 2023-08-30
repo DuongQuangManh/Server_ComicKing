@@ -1,6 +1,0 @@
-export default {
-    LOGIN_OTP: 'LOGIN_OTP',
-    REGISTER_OTP: 'REGISTER_OTP',
-    CHANGE_PIN_OTP: 'CHANGE_PIN_OTP',
-    RESET_PIN_OTP: 'RESET_PIN_OTP'
-}
