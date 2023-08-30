@@ -9,10 +9,11 @@ export const registerShema = Joi.object({
 
 export const loginShema = Joi.object({
     email: Joi.string().email().required(),
-    password: Joi.string().required()
+    password: Joi.string().required(),
+    needVerifyOtp: Joi.boolean()
 })
 
-export const registerVerifyOtpShema = Joi.object({
+export const verifyEmailOtpShema = Joi.object({
     email: Joi.string().email().required(),
     code: Joi.string().length(6).alphanum().required()
 })

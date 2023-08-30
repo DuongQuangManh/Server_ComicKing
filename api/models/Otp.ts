@@ -16,6 +16,8 @@ module.exports = {
 
     code: { type: 'string', required: true },
 
+    otpType: { type: 'string', required: true },
+
     expireAt: { type: 'number', required: true },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗

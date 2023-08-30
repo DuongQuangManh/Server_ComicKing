@@ -1,5 +1,5 @@
 import { AppError } from "../../custom/customClass"
-import { loginShema, registerShema, registerVerifyOtpShema } from "./user.schema"
+import { loginShema, registerShema, verifyEmailOtpShema } from "./user.schema"
 
 
 export const registerValidation = (body: any) => {
@@ -16,8 +16,8 @@ export const loginValidation = (body: any) => {
     }
 }
 
-export const registerVerifyOtpValidation = (body: any) => {
-    const value = registerVerifyOtpShema.validate(body)
+export const verifyEmailOtpValidation = (body: any) => {
+    const value = verifyEmailOtpShema.validate(body)
     if (value.error) {
         throw new AppError(400, value.error.message, 400)
     }

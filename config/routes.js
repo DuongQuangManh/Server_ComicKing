@@ -34,5 +34,6 @@ module.exports.routes = {
   ***************************************************************************/
   'POST /api/user/login': 'AuthController.login',
   'POST /api/user/register': 'AuthController.register',
-  'POST /api/user/registerVerifyOtp': 'AuthController.registerVerifyOtp'
+  'POST /api/user/registerVerifyOtp': 'AuthController.registerVerifyOtp',
+  'POST /api/user/loginVerifyOtp': 'AuthController.loginVerifyOtp'
 };
