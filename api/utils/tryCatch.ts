@@ -6,7 +6,7 @@ export default (fn: ExpressFunction) => async (req: Request, res: Response, next
     try {
         return await fn(req, res, next)
     } catch (error: any) {
-        console.log("Error : ", error)
+        console.log("Error : ", error.message)
         return errorHandler(error, res)
     }
 }

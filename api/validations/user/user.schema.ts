@@ -12,7 +12,7 @@ export const loginShema = Joi.object({
     password: Joi.string().required()
 })
 
-export const registerVerifyOtpShema = Joi.object({
+export const verifyEmailOtpShema = Joi.object({
     email: Joi.string().email().required(),
     code: Joi.string().length(6).alphanum().required()
 })
