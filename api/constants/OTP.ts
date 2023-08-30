@@ -9,4 +9,4 @@ export const OTP_TYPES = {
     RESET_PIN_SUCCESS: 'RESET_PIN_SUCCESS',
 }
 
-export const OTP_TIME_EXPIRE = 20000
+export const OTP_TIME_EXPIRE = 10 * 60 * 1000
