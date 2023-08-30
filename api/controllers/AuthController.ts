@@ -37,9 +37,9 @@ module.exports = {
         if (exitsUser)
             throw new AppError(400, 'Email đã tồn tại! Vui lòng thử email khác.', 400)
 
-        const existOtp = await OtpVerification.findOne({ email: body.email })
+        const oldOtpVerify = await OtpVerification.findOne({ email: body.email })
         // get otp verifycation object sent to user
-        const otpVerify =
+        const newOtpVerify =
             await otpVerificationhandler(
                 body.email,
                 OTP_TYPES.REGISTER,
@@ -48,15 +48,15 @@ module.exports = {
                     password: hashPassword(body.password),
                     nickName: generateUsername()
                 },
-                existOtp,
+                oldOtpVerify,
                 REGISTER_VERIFY_OTP_MAIL_TEMPLATE
             )
 
         await Otp.create({
-            email: otpVerify.email,
-            code: otpVerify.code,
-            expireAt: otpVerify.expireAt,
-            otpType: otpVerify.otpType
+            email: newOtpVerify.email,
+            code: newOtpVerify.code,
+            expireAt: newOtpVerify.expireAt,
+            otpType: newOtpVerify.otpType
         })
         return res.status(200).json({
             err: 200,
@@ -164,6 +164,13 @@ module.exports = {
         })
         if (!exitsUser)
             throw new AppError(400, "Người dùng không tồn tại.", 400)
+
+        await Otp.create({
+            email: newOtpVerify.email,
+            code: newOtpVerify.code,
+            expireAt: newOtpVerify.expireAt,
+            otpType: newOtpVerify.otpType
+        })
 
         const accessToken = generateToken({
             email: exitsUser.email,
