@@ -1,9 +1,9 @@
 import Joi from 'joi'
 
 export const registerShema = Joi.object({
-    fullName: Joi.string().min(4).required(),
     email: Joi.string().email().required(),
-    password: Joi.string().required(),
+    fullName: Joi.string().min(6).required(),
+    password: Joi.string().min(6).required(),
     confirmPassword: Joi.string().valid(Joi.ref('password')).required()
 })
 

@@ -36,11 +36,12 @@ module.exports = {
         if (exitsUser)
             throw new AppError(400, 'Email đã tồn tại! Vui lòng thử email khác.', 400)
 
-        const existOtp = OtpVerification.findOne({ email: body.email })
+        const existOtp = await OtpVerification.findOne({ email: body.email })
         const otpObj = {
             email: body.email,
-            otpType: OTP_TYPES.REGISTER_OTP,
+            otpType: OTP_TYPES.REGISTER,
             expireAt: Date.now() + OTP_TIME_EXPIRE,
+            code: generateOtp(),
             data: {
                 fullName: body.fullName,
                 password: hashPassword(body.password),
@@ -48,13 +49,14 @@ module.exports = {
             }
         }
 
-        sendOtpEmail(otpObj.otpType, otpObj.email)
+        sendOtpEmail(otpObj.code, otpObj.email)
 
         // advoid wrong unique email
         const otpVerify = existOtp ?
-            await OtpVerification.updateOne({ otpObj: body.email }).set(otpObj)
+            await OtpVerification.updateOne({ email: body.email }).set(otpObj)
             : await OtpVerification.create(otpObj).fetch()
-        if (otpVerify)
+
+        if (!otpVerify)
             throw new AppError(500, 'Không thể tạo mã otp vui lòng thử lại.', 500)
 
         await Otp.create({
@@ -65,7 +67,7 @@ module.exports = {
 
         return res.status(200).json({
             err: 200,
-            msg: `Xác minh mã Otp từ email ${body.email} để đăng ký.`,
+            msg: `Vui lòng xác minh mã Otp từ email ${body.email} để hoàn thành đăng ký.`,
         })
     }),
 
@@ -73,21 +75,27 @@ module.exports = {
         const { body } = req
         registerVerifyOtpValidation(body)
 
-        const existOtp = OtpVerification.findOne({ email: body.email })
+        const existOtp = await OtpVerification.findOne({ email: body.email })
         if (!existOtp)
             throw new AppError(400, 'Email không tồn tại Otp.', 400)
 
-        if (existOtp.code != body.code || existOtp.otpType != OTP_TYPES.REGISTER_OTP)
+        if (existOtp.code != body.code || existOtp.otpType != OTP_TYPES.REGISTER)
             throw new AppError(400, 'Mã Otp không hợp lệ.', 400)
 
         if (existOtp.expireAt < Date.now())
             throw new AppError(400, 'Mã Otp đã hết hạn vui lòng thử lại.', 400)
 
-        const otpVefify = OtpVerification.updateOne({ email: body.email }).set({ otpType: '', data: {} })
+        const otpVefify =
+            await OtpVerification
+                .updateOne({ email: body.email })
+                .set({
+                    otpType: OTP_TYPES.REGISTER_SUCCESS,
+                    data: {}
+                })
         if (!otpVefify)
             throw new AppError(400, 'Lỗi cập nhật mã Otp vui lòng thử lại.', 400)
 
-        const createdUser = User.create({
+        const createdUser = await User.create({
             email: body.email,
             ...existOtp.data
         }).fetch()
