@@ -6,8 +6,8 @@ export default (mailOptions: Mail.Options) => {
     const transporter = NodeMailer.createTransport({
         service: 'gmail',
         auth: {
-            user: process.env.EMAIL,
-            pass: process.env.EMAIL_PASS
+            user: process.env.AUTH_EMAIL,
+            pass: process.env.AUTH_EMAIL_PASS
         }
     })
 
