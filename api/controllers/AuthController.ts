@@ -5,7 +5,11 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-import { LOGIN_VERIFY_OTP_MAIL_TEMPLATE, REGISTER_VERIFY_OTP_MAIL_TEMPLATE } from "../constants/EMAIL_TEMPLATES";
+import { authAdmin } from "../../config/firebase/firebase";
+import {
+    LOGIN_VERIFY_OTP_MAIL_TEMPLATE,
+    REGISTER_VERIFY_OTP_MAIL_TEMPLATE
+} from "../constants/EMAIL_TEMPLATES";
 import { OTP_TYPES } from "../constants/OTP";
 import { AppError } from "../custom/customClass";
 import {
@@ -158,11 +162,11 @@ module.exports = {
         if (!newOtpVerify)
             throw new AppError(400, 'Lỗi cập nhật mã Otp vui lòng thử lại.', 400)
 
-        const exitsUser = await User.findOne({
+        const existUser = await User.findOne({
             where: { email: body.email },
             select: ['email', 'nickName', 'password']
         })
-        if (!exitsUser)
+        if (!existUser)
             throw new AppError(400, "Người dùng không tồn tại.", 400)
 
         await Otp.create({
@@ -173,9 +177,9 @@ module.exports = {
         })
 
         const accessToken = generateToken({
-            email: exitsUser.email,
-            nickName: exitsUser.nickName,
-            userId: exitsUser.id
+            email: existUser.email,
+            nickName: existUser.nickName,
+            userId: existUser.id
         })
         return res.status(200).json({
             err: 200,
@@ -184,7 +188,46 @@ module.exports = {
         })
     }),
 
-    loginWithGoogle: tryCatch((req, res, next) => {
+    loginWithGoogle: tryCatch(async (req, res) => {
+        const idToken = req.body.idToken
+        const decodedToken = await authAdmin.auth().verifyIdToken(idToken)
+        let existUser = await User.findOne({ email: decodedToken.email })
+
+        if (!existUser) {
+            existUser = await User.create({
+                email: decodedToken.email,
+                imagePath: decodedToken.picture,
+                fullName: decodedToken.name,
+                nickname: generateUsername()
+            }).fetch()
+            if (!existUser)
+                throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
+        }
+        
+        const accessToken = generateToken({
+            email: existUser.email,
+            nickName: existUser.nickName,
+            userId: existUser.id
+        })
+        return res.status(200).json({
+            err: 200,
+            msg: 'Đăng nhập thành công',
+            data: { accessToken }
+        })
+    }),
+
+    forgotPassword: tryCatch(async (req,res) => {
+    }),
+
+    forgotPasswordVerifyOtp: tryCatch(async (req,res) => {
+
+    }),
+
+    resetPassword: tryCatch(async (req,res) => {
+
+    }),
+
+    resetPasswordVerifyOtp: tryCatch(async (req,res) => {
 
     })
 };
