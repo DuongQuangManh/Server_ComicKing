@@ -35,7 +35,6 @@ module.exports = {
       type: 'string',
       minLength: 6,
       maxLength: 255,
-      required: true
     },
 
     imagePath: {

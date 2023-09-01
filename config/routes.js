@@ -36,5 +36,11 @@ module.exports.routes = {
   'POST /api/user/register': 'AuthController.register',
   'POST /api/user/registerVerifyOtp': 'AuthController.registerVerifyOtp',
   'POST /api/user/loginVerifyOtp': 'AuthController.loginVerifyOtp',
-  'POST /api/upload': 'ComicController.upload'
+  'POST /api/upload': 'ComicController.upload',
+  'POST /api/user/loginWithGoogle': 'AuthController.loginWithGoogle',
+  'POST /api/user/forgotPassword': 'AuthController.forgotPassword',
+  'POST /api/user/forgotPasswordVerifyOtp': 'AuthController.forgotPasswordVerifyOtp',
+  'POST /api/user/resetPassword': 'AuthController.resetPassword',
+  'Post /api/user/resetPasswrodVerifyOtp': 'AuthController.resetPasswordVerifyOtp'
+
 };
