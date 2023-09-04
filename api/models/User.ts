@@ -40,6 +40,11 @@ module.exports = {
     imagePath: {
       type: 'string',
       defaultsTo: ''
+    },
+
+    birthday: {
+      type: 'string',
+      defaultsTo: ''
     }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗

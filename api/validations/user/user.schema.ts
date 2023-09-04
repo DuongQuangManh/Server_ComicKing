@@ -1,19 +1,42 @@
 import Joi from 'joi'
+import {
+    emailShema,
+    passwordShema,
+    codeShema,
+    confirmPasswordShema,
+    dateShema,
+    fullNameShema
+} from '../index.types'
 
 export const registerShema = Joi.object({
-    email: Joi.string().email().required(),
-    fullName: Joi.string().min(6).required(),
-    password: Joi.string().min(6).required(),
-    confirmPassword: Joi.string().valid(Joi.ref('password')).required()
+    email: emailShema,
+    fullName: fullNameShema,
+    password: passwordShema,
+    confirmPassword: confirmPasswordShema,
+    birthday: dateShema
 })
 
 export const loginShema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-    needVerifyOtp: Joi.boolean()
+    email: emailShema,
+    password: passwordShema,
+    // needVerifyOtp: Joi.boolean()
 })
 
 export const verifyEmailOtpShema = Joi.object({
-    email: Joi.string().email().required(),
-    code: Joi.string().length(6).alphanum().required()
+    email: emailShema,
+    code: codeShema
+})
+
+export const forgotPassShema = Joi.object({
+    email: emailShema,
+    birthday: dateShema,
+    password: passwordShema,
+    confirmPassword: confirmPasswordShema
+})
+
+export const changePassShema = Joi.object({
+    email: emailShema,
+    oldPass: passwordShema,
+    newPass: passwordShema,
+    confirmNewPass: confirmPasswordShema
 })

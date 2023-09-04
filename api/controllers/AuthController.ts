@@ -7,6 +7,7 @@
 
 import { authAdmin } from "../../config/firebase/firebase";
 import {
+    FORGOT_VERIFY_OTP_MAIL_TEMPLATE,
     LOGIN_VERIFY_OTP_MAIL_TEMPLATE,
     REGISTER_VERIFY_OTP_MAIL_TEMPLATE
 } from "../constants/EMAIL_TEMPLATES";
@@ -21,6 +22,7 @@ import {
 } from "../services/AuthService";
 import tryCatch from "../utils/tryCatch";
 import {
+    forgotPassValidation,
     loginValidation,
     registerValidation,
     verifyEmailOtpValidation
@@ -36,6 +38,8 @@ module.exports = {
     register: tryCatch(async (req, res) => {
         const { body } = req
         registerValidation(body)
+        body.email = body.email.toLowerCase()
+
 
         const exitsUser = await User.findOne({ email: body.email })
         if (exitsUser)
@@ -50,7 +54,8 @@ module.exports = {
                 {
                     fullName: body.fullName,
                     password: hashPassword(body.password),
-                    nickName: generateUsername()
+                    nickName: generateUsername(),
+                    birthday: body.birthday
                 },
                 oldOtpVerify,
                 REGISTER_VERIFY_OTP_MAIL_TEMPLATE
@@ -64,13 +69,15 @@ module.exports = {
         })
         return res.status(200).json({
             err: 200,
-            msg: `Vui lòng xác minh mã Otp từ email ${body.email} để hoàn thành đăng ký.`,
+            message: `Vui lòng xác minh mã Otp (6 chữ số) từ email ${body.email} để hoàn thành đăng ký.`,
+            email: body.email
         })
     }),
 
     registerVerifyOtp: tryCatch(async (req, res) => {
         const { body } = req
         verifyEmailOtpValidation(body)
+        body.email = body.email?.toLowerCase()
 
         //check valid + get old otp verification of email
         const oldOtpVerify = await getValidVerifyOtp(body.email, body.code, OTP_TYPES.REGISTER)
@@ -95,7 +102,7 @@ module.exports = {
 
         return res.status(200).json({
             err: 200,
-            msg: 'Đăng kí thành công',
+            message: 'Đăng kí thành công',
             data: {
                 email: newUser.email
             }
@@ -105,20 +112,21 @@ module.exports = {
     login: tryCatch(async (req, res) => {
         const { body } = req
         loginValidation(body)
+        body.email = body.email?.toLowerCase()
 
         const exitsUser = await User.findOne({
             where: { email: body.email },
             select: ['email', 'nickName', 'password']
         })
         if (!exitsUser)
-            throw new AppError(400, "Email không tồn tại! Vui lòng thử email khác.", 400)
+            throw new AppError(400, "Email hoặc mật khẩu không hợp lệ.", 400)
 
         checkPassword(exitsUser.password, body.password)
 
         if (body.needVerifyOtp == undefined || body.needVerifyOtp) {
             const existOtp = await OtpVerification.findOne({ email: body.email })
             // update verifycation object sent to user
-            await otpVerificationhandler(
+            const newOtpVerify = await otpVerificationhandler(
                 body.email,
                 OTP_TYPES.LOGIN,
                 {},
@@ -126,9 +134,17 @@ module.exports = {
                 LOGIN_VERIFY_OTP_MAIL_TEMPLATE
             )
 
+            await Otp.create({
+                email: newOtpVerify.email,
+                code: newOtpVerify.code,
+                expireAt: newOtpVerify.expireAt,
+                otpType: newOtpVerify.otpType
+            })
+
             return res.status(200).json({
                 err: 200,
-                msg: `Vui lòng xác minh mã Otp từ email ${body.email} để hoàn thành đăng nhập.`,
+                email: body.email,
+                message: `Vui lòng xác minh mã Otp (6 chữ số) từ email ${body.email} để hoàn thành đăng nhập.`,
                 needVerifyOtp: true
             })
         }
@@ -140,7 +156,7 @@ module.exports = {
         })
         return res.status(200).json({
             err: 200,
-            msg: 'Đăng nhập thành công',
+            message: 'Đăng nhập thành công',
             data: { accessToken }
         })
     }),
@@ -148,6 +164,7 @@ module.exports = {
     loginVerifyOtp: tryCatch(async (req, res) => {
         const { body } = req
         verifyEmailOtpValidation(body)
+        body.email = body.email?.toLowerCase()
 
         //check valid old otp verification of email
         await getValidVerifyOtp(body.email, body.code, OTP_TYPES.LOGIN)
@@ -169,13 +186,6 @@ module.exports = {
         if (!existUser)
             throw new AppError(400, "Người dùng không tồn tại.", 400)
 
-        await Otp.create({
-            email: newOtpVerify.email,
-            code: newOtpVerify.code,
-            expireAt: newOtpVerify.expireAt,
-            otpType: newOtpVerify.otpType
-        })
-
         const accessToken = generateToken({
             email: existUser.email,
             nickName: existUser.nickName,
@@ -183,7 +193,7 @@ module.exports = {
         })
         return res.status(200).json({
             err: 200,
-            msg: 'Đăng nhập thành công',
+            message: 'Đăng nhập thành công',
             data: { accessToken }
         })
     }),
@@ -192,18 +202,17 @@ module.exports = {
         const idToken = req.body.idToken
         const decodedToken = await authAdmin.auth().verifyIdToken(idToken)
         let existUser = await User.findOne({ email: decodedToken.email })
-
         if (!existUser) {
             existUser = await User.create({
-                email: decodedToken.email,
+                email: decodedToken.email?.toLowerCase(),
                 imagePath: decodedToken.picture,
                 fullName: decodedToken.name,
-                nickname: generateUsername()
+                nickName: generateUsername()
             }).fetch()
             if (!existUser)
                 throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
         }
-        
+
         const accessToken = generateToken({
             email: existUser.email,
             nickName: existUser.nickName,
@@ -211,23 +220,86 @@ module.exports = {
         })
         return res.status(200).json({
             err: 200,
-            msg: 'Đăng nhập thành công',
+            message: 'Đăng nhập thành công',
             data: { accessToken }
         })
     }),
 
-    forgotPassword: tryCatch(async (req,res) => {
+    forgotPassword: tryCatch(async (req, res) => {
+        const { body } = req
+        forgotPassValidation(body)
+        body.email = body.email?.toLowerCase()
+
+        const existUser = await User.findOne({ email: body.email })
+        if (!existUser)
+            throw new AppError(400, 'Email không tồn tại trong hệ thống.', 400)
+        if (existUser.birthday != body.birthday)
+            throw new AppError(400, 'Ngày sinh không hợp lệ.', 400)
+
+        const existOtp = await OtpVerification.findOne({ email: body.email })
+        // update verifycation object sent to user
+        const newOtpVerify = await otpVerificationhandler(
+            body.email,
+            OTP_TYPES.FORGOT_PIN,
+            {
+                password: hashPassword(body.password),
+            },
+            existOtp,
+            FORGOT_VERIFY_OTP_MAIL_TEMPLATE
+        )
+
+        await Otp.create({
+            email: newOtpVerify.email,
+            code: newOtpVerify.code,
+            expireAt: newOtpVerify.expireAt,
+            otpType: newOtpVerify.otpType
+        })
+
+        return res.status(200).json({
+            err: 200,
+            message: `Vui lòng xác minh mã Otp (6 chữ số) từ email ${body.email} để thay đổi mật khẩu.`,
+            email: body.email,
+        })
     }),
 
-    forgotPasswordVerifyOtp: tryCatch(async (req,res) => {
+    forgotPasswordVerifyOtp: tryCatch(async (req, res) => {
+        const { body } = req
+        verifyEmailOtpValidation(body)
+        body.email = body.email?.toLowerCase()
+
+        const oldOtpVerify = await getValidVerifyOtp(body.email, body.code, OTP_TYPES.FORGOT_PIN)
+
+        const newOtpVerify =
+            await OtpVerification
+                .updateOne({ email: body.email })
+                .set({
+                    otpType: OTP_TYPES.FORGOT_PIN_SUCCESS,
+                    data: {}
+                })
+        if (!newOtpVerify)
+            throw new AppError(400, 'Lỗi cập nhật mã Otp vui lòng thử lại.', 400)
+
+        const updatedUser =
+            await User.updateOne({ email: body.email })
+                .set({
+                    email: body.email,
+                    ...oldOtpVerify.data
+                })
+        if (!updatedUser)
+            throw new AppError(400, 'Không thể cập nhật người dùng vui lòng thử lại.', 400)
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Thay đổi mật khẩu thành công.',
+            data: {}
+        })
+    }),
+
+    changePassword: tryCatch(async (req, res) => {
 
     }),
 
-    resetPassword: tryCatch(async (req,res) => {
-
-    }),
-
-    resetPasswordVerifyOtp: tryCatch(async (req,res) => {
+    changePasswordVerifyOtp: tryCatch(async (req, res) => {
 
     })
 };

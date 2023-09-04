@@ -10,9 +10,9 @@ export interface IOtp {
 
 export interface IOtpVerification extends IOtp {
     data?: {
-        fullName: string,
+        fullName?: string,
         password: string,
-        nickName: string
+        nickName?: string
     } | {}
 }
 

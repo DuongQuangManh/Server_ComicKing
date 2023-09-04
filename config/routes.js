@@ -40,7 +40,7 @@ module.exports.routes = {
   'POST /api/user/loginWithGoogle': 'AuthController.loginWithGoogle',
   'POST /api/user/forgotPassword': 'AuthController.forgotPassword',
   'POST /api/user/forgotPasswordVerifyOtp': 'AuthController.forgotPasswordVerifyOtp',
-  'POST /api/user/resetPassword': 'AuthController.resetPassword',
-  'Post /api/user/resetPasswrodVerifyOtp': 'AuthController.resetPasswordVerifyOtp'
+  'POST /api/user/changePassword': 'AuthController.changePassword',
+  'Post /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp'
 
 };
