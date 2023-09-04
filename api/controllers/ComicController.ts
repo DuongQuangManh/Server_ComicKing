@@ -14,7 +14,7 @@ module.exports = {
         const id = await uploadImage()
         return res.status(200).json({
             err: 200,
-            msg: 'upload success',
+            message: 'upload success',
             id
         })
     })

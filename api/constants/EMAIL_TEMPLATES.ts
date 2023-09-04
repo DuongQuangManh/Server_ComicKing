@@ -17,3 +17,23 @@ export const REGISTER_VERIFY_OTP_MAIL_TEMPLATE = {
         + "Nếu bạn không gửi yêu cầu này, hãy bỏ qua nó."
         + "</p><p>Trân trọng,</p>ComicBook"
 }
+
+export const FORGOT_VERIFY_OTP_MAIL_TEMPLATE = {
+    subject: 'Xác minh tài khoản ComicBook.',
+    html: "User thân mến ,"
+        + "<p>Mã xác nhận: <b><%= otp %></b>."
+        + "Sử dụng mã này để lấy lại mật khẩu cho tài khoản ComicBook."
+        + "</p><p>Bảo mật, vui lòng không chia sẻ mã này vơi bất kỳ ai."
+        + "Nếu bạn không tạo yêu cầu này, hãy bỏ qua nó."
+        + "</p><p>Trân trọng,</p>ComicBook"
+}
+
+export const CHANGE_VERIFY_OTP_MAIL_TEMPLATE = {
+    subject: 'Xác minh thay đổi mật khẩu tài khoản ComicBook.',
+    html: "User thân mến ,"
+        + "<p>Mã xác nhận: <b><%= otp %></b>."
+        + "Sử dụng mã này để thay đổi mật khẩu cho tài khoản ComicBook."
+        + "</p><p>Bảo mật, vui lòng không chia sẻ mã này vơi bất kỳ ai."
+        + "Nếu bạn không tạo yêu cầu này, hãy bỏ qua nó."
+        + "</p><p>Trân trọng,</p>ComicBook"
+}

@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "esModuleInterop": true,
+        "moduleResolution": "node",
+        "target": "es2018",
+        "module": "CommonJs",
+        "lib": [
+            "es2018"
+        ],
+        "jsx": "preserve",
+        "outDir": "./dist",
+        "strict": false,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "baseUrl": "./src/",
+        "allowSyntheticDefaultImports": true,
+        "isolatedModules": false,
+        "noErrorTruncation": true,
+        "sourceMap": true,
+    }
+}

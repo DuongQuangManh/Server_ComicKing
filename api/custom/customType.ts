@@ -6,6 +6,6 @@ export interface ExpressFunction {
 
 export interface DataRespone {
     err: number,
-    msg: string
+    message: string
     data?: any,
 }
