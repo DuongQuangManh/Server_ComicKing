@@ -3,8 +3,9 @@ import Bcryptjs from 'bcryptjs'
 import Ejs from 'ejs'
 import transporterEmail from '../utils/transporterEmail'
 import { IEmailTemplate, IOtpVerification } from '../custom/types/otp.type'
-import { OTP_TIME_EXPIRE } from '../constants/OTP'
+import { OTP_TIME_EXPIRE, OTP_TYPES } from '../constants/OTP'
 import { AppError } from '../custom/customClass'
+import { CHANGE_VERIFY_OTP_MAIL_TEMPLATE, FORGOT_VERIFY_OTP_MAIL_TEMPLATE, LOGIN_VERIFY_OTP_MAIL_TEMPLATE, REGISTER_VERIFY_OTP_MAIL_TEMPLATE } from '../constants/EMAIL_TEMPLATES'
 
 const SECRETKEY = process.env.SECRETKEY as string
 
@@ -89,4 +90,21 @@ export const getValidVerifyOtp = async (email: string, code: string, type: strin
     if (existOtp.expireAt < Date.now())
         throw new AppError(400, 'Mã Otp đã hết hạn vui lòng thử lại.', 400)
     return existOtp as IOtpVerification
+}
+
+export const getEmailTemplateWithOtpType = (type: string) => {
+
+    switch (type) {
+        case type = OTP_TYPES.LOGIN:
+            return LOGIN_VERIFY_OTP_MAIL_TEMPLATE
+        case type = OTP_TYPES.CHANGE_PIN:
+            return CHANGE_VERIFY_OTP_MAIL_TEMPLATE
+        case type = OTP_TYPES.FORGOT_PIN:
+            return FORGOT_VERIFY_OTP_MAIL_TEMPLATE
+        case type = OTP_TYPES.REGISTER:
+            return REGISTER_VERIFY_OTP_MAIL_TEMPLATE
+        default:
+            return CHANGE_VERIFY_OTP_MAIL_TEMPLATE
+    }
+
 }

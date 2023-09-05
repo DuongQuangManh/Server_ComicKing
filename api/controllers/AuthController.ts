@@ -11,16 +11,20 @@ import {
     LOGIN_VERIFY_OTP_MAIL_TEMPLATE,
     REGISTER_VERIFY_OTP_MAIL_TEMPLATE
 } from "../constants/EMAIL_TEMPLATES";
-import { OTP_TYPES } from "../constants/OTP";
+import { OTP_TIME_EXPIRE, OTP_TYPES } from "../constants/OTP";
 import { AppError } from "../custom/customClass";
 import {
     checkPassword,
     generateToken,
     hashPassword,
     otpVerificationhandler,
-    getValidVerifyOtp
+    getValidVerifyOtp,
+    generateOtp,
+    sendOtpEmail,
+    getEmailTemplateWithOtpType
 } from "../services/AuthService";
 import tryCatch from "../utils/tryCatch";
+import { emailShema } from "../validations/index.types";
 import {
     forgotPassValidation,
     loginValidation,
@@ -292,6 +296,42 @@ module.exports = {
             err: 200,
             message: 'Thay đổi mật khẩu thành công.',
             data: {}
+        })
+    }),
+
+    resendOtp: tryCatch(async (req, res) => {
+        const { body } = req
+        const value = emailShema.validate(body.email)
+        if (value.error) {
+            throw new AppError(400, value.error.message, 400)
+        }
+
+        const existOtp = await OtpVerification.findOne({ email: body.email })
+        // update verifycation object sent to user
+        if (!existOtp)
+            throw new AppError(400, `Không thể gửi otp qua email : ${body.emai}.`, 400)
+
+        const otpObj = {
+            expireAt: Date.now() + OTP_TIME_EXPIRE,
+            code: generateOtp(),
+        }
+        sendOtpEmail(otpObj.code, body.email, getEmailTemplateWithOtpType(existOtp.otpType))
+
+        const newOtpVerify = await OtpVerification
+            .updateOne({ email: body.email })
+            .set(otpObj)
+
+        await Otp.create({
+            email: newOtpVerify.email,
+            code: newOtpVerify.code,
+            expireAt: newOtpVerify.expireAt,
+            otpType: newOtpVerify.otpType
+        })
+
+        return res.status(200).json({
+            err: 200,
+            message: `Resend otp thành công.`,
+            email: body.email,
         })
     }),
 
