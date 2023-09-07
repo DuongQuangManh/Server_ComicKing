@@ -7,6 +7,7 @@
 
 import { authAdmin } from "../../config/firebase/firebase";
 import {
+    CHANGE_VERIFY_OTP_MAIL_TEMPLATE,
     FORGOT_VERIFY_OTP_MAIL_TEMPLATE,
     LOGIN_VERIFY_OTP_MAIL_TEMPLATE,
     REGISTER_VERIFY_OTP_MAIL_TEMPLATE
@@ -26,6 +27,7 @@ import {
 import tryCatch from "../utils/tryCatch";
 import { emailShema } from "../validations/index.types";
 import {
+    changePassValidation,
     forgotPassValidation,
     loginValidation,
     registerValidation,
@@ -214,11 +216,39 @@ module.exports = {
                 nickName: generateUsername()
             }).fetch()
             if (!existUser)
-                throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
+                throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)
         }
 
         const accessToken = generateToken({
             email: existUser.email,
+            nickName: existUser.nickName,
+            userId: existUser.id
+        })
+        return res.status(200).json({
+            err: 200,
+            message: 'Đăng nhập thành công',
+            data: { accessToken }
+        })
+    }),
+
+    loginWithFacebook: tryCatch(async (req, res) => {
+        const idToken = req.body.idToken
+        const decodedToken = await authAdmin.auth().verifyIdToken(idToken)
+        let existUser = await User.findOne({ fbId: decodedToken.uid })
+
+        if (!existUser) {
+            existUser = await User.create({
+                fbId: decodedToken.uid,
+                imagePath: decodedToken.picture,
+                fullName: decodedToken.name,
+                nickName: generateUsername()
+            }).fetch()
+            if (!existUser)
+                throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)
+        }
+
+        const accessToken = generateToken({
+            fbId: existUser.fbId,
             nickName: existUser.nickName,
             userId: existUser.id
         })
@@ -336,11 +366,73 @@ module.exports = {
     }),
 
     changePassword: tryCatch(async (req, res) => {
+        const { body } = req
+        changePassValidation(body)
+        body.email = body.email?.toLowerCase()
 
+        const existUser = await User.findOne({ email: body.email })
+        if (!existUser)
+            throw new AppError(400, 'Email không tồn tại trong hệ thống.', 400)
+
+        checkPassword(existUser.password, body.oldPass)
+
+        const existOtp = await OtpVerification.findOne({ email: body.email })
+        // update verifycation object sent to user
+        const newOtpVerify = await otpVerificationhandler(
+            body.email,
+            OTP_TYPES.CHANGE_PIN,
+            {
+                password: hashPassword(body.password),
+            },
+            existOtp,
+            CHANGE_VERIFY_OTP_MAIL_TEMPLATE
+        )
+
+        await Otp.create({
+            email: newOtpVerify.email,
+            code: newOtpVerify.code,
+            expireAt: newOtpVerify.expireAt,
+            otpType: newOtpVerify.otpType
+        })
+
+        return res.status(200).json({
+            err: 200,
+            message: `Vui lòng xác minh mã Otp (6 chữ số) từ email ${body.email} để thay đổi mật khẩu.`,
+            email: body.email,
+        })
     }),
 
     changePasswordVerifyOtp: tryCatch(async (req, res) => {
+        const { body } = req
+        verifyEmailOtpValidation(body)
+        body.email = body.email?.toLowerCase()
 
+        const oldOtpVerify = await getValidVerifyOtp(body.email, body.code, OTP_TYPES.CHANGE_PIN)
+
+        const newOtpVerify =
+            await OtpVerification
+                .updateOne({ email: body.email })
+                .set({
+                    otpType: OTP_TYPES.CHANGE_PIN_SUCCESS,
+                    data: {}
+                })
+        if (!newOtpVerify)
+            throw new AppError(400, 'Lỗi cập nhật mã Otp vui lòng thử lại.', 400)
+
+        const updatedUser =
+            await User.updateOne({ email: body.email })
+                .set({
+                    email: body.email,
+                    ...oldOtpVerify.data
+                })
+        if (!updatedUser)
+            throw new AppError(400, 'Không thể cập nhật người dùng vui lòng thử lại.', 400)
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Thay đổi mật khẩu thành công.',
+            data: {}
+        })
     })
 };
 
