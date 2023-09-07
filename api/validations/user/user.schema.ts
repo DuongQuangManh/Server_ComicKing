@@ -37,6 +37,6 @@ export const forgotPassShema = Joi.object({
 export const changePassShema = Joi.object({
     email: emailShema,
     oldPass: passwordShema,
-    newPass: passwordShema,
-    confirmNewPass: confirmPasswordShema
+    password: passwordShema,
+    confirmPassword: confirmPasswordShema
 })

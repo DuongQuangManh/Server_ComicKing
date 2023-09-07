@@ -42,5 +42,8 @@ module.exports.routes = {
   'POST /api/user/forgotPasswordVerifyOtp': 'AuthController.forgotPasswordVerifyOtp',
   'POST /api/user/changePassword': 'AuthController.changePassword',
   'Post /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp',
-  'POST /api/user/resendOtp': 'AuthController.resendOtp'
+  'POST /api/user/resendOtp': 'AuthController.resendOtp',
+  'POST /api/user/loginWithFacebook': 'AuthController.loginWithFacebook',
+  'POST /api/user/changePassword': 'AuthController.changePassword',
+  'POST /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp'
 };

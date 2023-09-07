@@ -19,10 +19,14 @@ module.exports = {
 
     email: {
       type: 'string',
-      required: true,
       unique: true,
       isEmail: true,
       maxLength: 255,
+    },
+
+    fbId: {
+      type: 'string',
+      unique: true
     },
 
     nickName: {
