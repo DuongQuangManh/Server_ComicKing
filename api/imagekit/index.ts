@@ -7,7 +7,7 @@ const {
     IMAGEKIT_URL_END_POINT = ''
 } = process.env
 
-const Imagekit = new ImageKit({
+const imageKit = new ImageKit({
     privateKey: IMAGEKIT_PRIVATE_KEY,
     publicKey: IMAGEKIT_PUBLIC_KEY,
     urlEndpoint: IMAGEKIT_URL_END_POINT
@@ -15,9 +15,9 @@ const Imagekit = new ImageKit({
 
 export const uploadImage = async () => {
     try {
-        const respone = await Imagekit.upload({
+        const respone = await imageKit.upload({
             file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
-            folder: 'comic-book/tryen1',
+            folder: 'comic/tryen1',
             fileName: '002.jpg',
             extensions: [
                 {
@@ -34,4 +34,37 @@ export const uploadImage = async () => {
 
 }
 
-export default Imagekit
+export const mutipleUpload = async () => {
+    let files = [
+        {
+            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
+            fileName: "image1.jpg",
+            folder: 'comic/tryen1',
+        },
+        {
+            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
+            fileName: "image2.jpg",
+            folder: 'comic/tryen1',
+        },
+        {
+            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
+            fileName: "image3.jpg",
+            folder: 'comic/tryen1',
+        },
+        {
+            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
+            fileName: "image4.jpg",
+            folder: 'comic/tryen1',
+        }
+    ];
+    try {
+        const uploadPromises = files.map(file => imageKit.upload(file))
+        const allResults = await Promise.all(uploadPromises)
+
+        return allResults
+    } catch (error: any) {
+        throw new AppError(400, error.message, 400)
+    }
+}
+
+export default imageKit

@@ -11,5 +11,8 @@ declare const Chapter: any
 
 module.exports = {
 
+    detail: tryCatch(async (req, res) => {
+
+    })
 
 }

@@ -5,18 +5,22 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-import { uploadImage } from "../imagekit";
+import { mutipleUpload, uploadImage } from "../imagekit";
 import tryCatch from "../utils/tryCatch";
 
 module.exports = {
 
     upload: tryCatch(async (req, res) => {
-        const id = await uploadImage()
+        const allResults = await mutipleUpload()
         return res.status(200).json({
             err: 200,
             message: 'upload success',
-            id
+            allResults
         })
+    }),
+
+    addChapter: tryCatch(async (req, res) => {
+
     })
 };
 
