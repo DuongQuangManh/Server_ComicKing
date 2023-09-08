@@ -55,5 +55,13 @@ module.exports.routes = {
   'POST /api/category/add': 'CategoryController.add',
   'POST /api/category/edit': 'CategoryController.edit',
 
-  //
+  //author
+  'POST /api/author/find': 'AuthorController.find',
+  'POST /api/author/edit': 'AuthorController.edit',
+  'POST /api/author/add': 'AuthorController.add',
+  'POST /api/author/detail': 'AuthorController.detail',
+
+  //comic
+
+  //chapter
 };
