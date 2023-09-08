@@ -32,6 +32,8 @@ module.exports.routes = {
   * not match any of those, it is matched against static assets.             *
   *                                                                          *
   ***************************************************************************/
+
+  // auth
   'POST /api/user/login': 'AuthController.login',
   'POST /api/user/register': 'AuthController.register',
   'POST /api/user/registerVerifyOtp': 'AuthController.registerVerifyOtp',
@@ -45,5 +47,13 @@ module.exports.routes = {
   'POST /api/user/resendOtp': 'AuthController.resendOtp',
   'POST /api/user/loginWithFacebook': 'AuthController.loginWithFacebook',
   'POST /api/user/changePassword': 'AuthController.changePassword',
-  'POST /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp'
+  'POST /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp',
+
+  //category
+  'POST /api/category/findAll': 'CategoryController.findAll',
+  'POST /api/category/find': 'CategoryController.find',
+  'POST /api/category/add': 'CategoryController.add',
+  'POST /api/category/edit': 'CategoryController.edit',
+
+  //
 };
