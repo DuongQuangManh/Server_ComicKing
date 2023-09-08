@@ -3,7 +3,7 @@ import { AppError } from '../custom/customClass'
 
 export default (error: Error, res: Response) => {
     if (error instanceof AppError) {
-        return res.status(error.errorCode).json({
+        return res.status(error.statusCode).json({
             err: error.errorCode,
             message: error.message
         })
