@@ -26,7 +26,7 @@ module.exports = {
 
     fbId: {
       type: 'string',
-      unique: true
+      defaultsTo: ''
     },
 
     nickName: {
@@ -41,7 +41,7 @@ module.exports = {
       maxLength: 255,
     },
 
-    imagePath: {
+    image: {
       type: 'string',
       defaultsTo: ''
     },

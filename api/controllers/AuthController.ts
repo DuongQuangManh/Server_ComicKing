@@ -106,11 +106,21 @@ module.exports = {
         if (!newUser)
             throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
 
+        const accessToken = generateToken({
+            email: newUser.email,
+            nickName: newUser.nickName,
+            id: newUser.id
+        })
         return res.status(200).json({
             err: 200,
             message: 'Đăng kí thành công',
             data: {
-                email: newUser.email
+                email: newUser.email,
+                accessToken,
+                nickName: newUser.nickName,
+                id: newUser.id,
+                image: newUser.image,
+                fullName: newUser.fullName
             }
         })
     }),
@@ -122,7 +132,7 @@ module.exports = {
 
         const exitsUser = await User.findOne({
             where: { email: body.email },
-            select: ['email', 'nickName', 'password']
+            select: ['email', 'nickName', 'password', 'image', 'fullName']
         })
         if (!exitsUser)
             throw new AppError(400, "Email hoặc mật khẩu không hợp lệ.", 400)
@@ -158,12 +168,17 @@ module.exports = {
         const accessToken = generateToken({
             email: exitsUser.email,
             nickName: exitsUser.nickName,
-            userId: exitsUser.id
+            id: exitsUser.id
         })
+
+        delete exitsUser.password
         return res.status(200).json({
             err: 200,
             message: 'Đăng nhập thành công',
-            data: { accessToken }
+            data: {
+                accessToken,
+                ...exitsUser
+            }
         })
     }),
 
@@ -187,7 +202,7 @@ module.exports = {
 
         const existUser = await User.findOne({
             where: { email: body.email },
-            select: ['email', 'nickName', 'password']
+            select: ['email', 'nickName', 'image', 'fullName']
         })
         if (!existUser)
             throw new AppError(400, "Người dùng không tồn tại.", 400)
@@ -195,12 +210,15 @@ module.exports = {
         const accessToken = generateToken({
             email: existUser.email,
             nickName: existUser.nickName,
-            userId: existUser.id
+            id: existUser.id
         })
         return res.status(200).json({
             err: 200,
             message: 'Đăng nhập thành công',
-            data: { accessToken }
+            data: {
+                accessToken,
+                ...existUser
+            }
         })
     }),
 
@@ -211,7 +229,7 @@ module.exports = {
         if (!existUser) {
             existUser = await User.create({
                 email: decodedToken.email?.toLowerCase(),
-                imagePath: decodedToken.picture,
+                image: decodedToken.picture,
                 fullName: decodedToken.name,
                 nickName: generateUsername()
             }).fetch()
@@ -222,12 +240,19 @@ module.exports = {
         const accessToken = generateToken({
             email: existUser.email,
             nickName: existUser.nickName,
-            userId: existUser.id
+            id: existUser.id
         })
         return res.status(200).json({
             err: 200,
             message: 'Đăng nhập thành công',
-            data: { accessToken }
+            data: {
+                accessToken,
+                email: existUser.email,
+                image: existUser.image,
+                id: existUser.id,
+                fullName: existUser.fullName,
+                nickName: existUser.nickName
+            }
         })
     }),
 
@@ -239,7 +264,7 @@ module.exports = {
         if (!existUser) {
             existUser = await User.create({
                 fbId: decodedToken.uid,
-                imagePath: decodedToken.picture,
+                image: decodedToken.picture,
                 fullName: decodedToken.name,
                 nickName: generateUsername()
             }).fetch()
@@ -250,12 +275,18 @@ module.exports = {
         const accessToken = generateToken({
             fbId: existUser.fbId,
             nickName: existUser.nickName,
-            userId: existUser.id
+            id: existUser.id
         })
         return res.status(200).json({
             err: 200,
             message: 'Đăng nhập thành công',
-            data: { accessToken }
+            data: {
+                accessToken,
+                image: existUser.image,
+                id: existUser.id,
+                fullName: existUser.fullName,
+                nickName: existUser.nickName
+            }
         })
     }),
 

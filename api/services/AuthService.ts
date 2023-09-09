@@ -7,7 +7,7 @@ import { OTP_TIME_EXPIRE, OTP_TYPES } from '../constants/OTP'
 import { AppError } from '../custom/customClass'
 import { CHANGE_VERIFY_OTP_MAIL_TEMPLATE, FORGOT_VERIFY_OTP_MAIL_TEMPLATE, LOGIN_VERIFY_OTP_MAIL_TEMPLATE, REGISTER_VERIFY_OTP_MAIL_TEMPLATE } from '../constants/EMAIL_TEMPLATES'
 
-const SECRETKEY = process.env.SECRETKEY as string
+const SECRETKEY = process.env.SECRET_KEY as string
 
 declare var OtpVerification: any
 

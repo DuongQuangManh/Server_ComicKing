@@ -28,7 +28,7 @@ module.exports = {
 
     numOfFavorite: { type: 'number', defaultsTo: 0 },
 
-    imagePath: { type: 'string', defaultsTo: '' },
+    image: { type: 'string', defaultsTo: '' },
 
     numOfComment: { type: 'number', defaultsTo: 0 },
 

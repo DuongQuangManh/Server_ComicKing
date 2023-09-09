@@ -15,7 +15,7 @@ module.exports = {
 
     name: { type: 'string', required: true },
     numOfComic: { type: 'number', defaultsTo: 0 },
-    imagePath: { type: 'string', defaultsTo: '' }
+    image: { type: 'string', defaultsTo: '' }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
