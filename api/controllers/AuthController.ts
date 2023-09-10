@@ -13,7 +13,9 @@ import {
     REGISTER_VERIFY_OTP_MAIL_TEMPLATE
 } from "../constants/EMAIL_TEMPLATES";
 import { OTP_TIME_EXPIRE, OTP_TYPES } from "../constants/OTP";
+import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
+import { uploadImage } from "../imagekit";
 import {
     checkPassword,
     generateToken,
@@ -101,7 +103,8 @@ module.exports = {
 
         const newUser = await User.create({
             email: body.email,
-            ...oldOtpVerify.data
+            ...oldOtpVerify.data,
+            image: constants.DEFAULT_AVATAR
         }).fetch()
         if (!newUser)
             throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
@@ -227,11 +230,13 @@ module.exports = {
         const decodedToken = await authAdmin.auth().verifyIdToken(idToken)
         let existUser = await User.findOne({ email: decodedToken.email })
         if (!existUser) {
+            const nickName = generateUsername()
+            const { name } = await uploadImage(decodedToken.picture, 'user/' + nickName, 'avatar')
             existUser = await User.create({
                 email: decodedToken.email?.toLowerCase(),
-                image: decodedToken.picture,
+                image: `user/${nickName}/${name}`,
                 fullName: decodedToken.name,
-                nickName: generateUsername()
+                nickName,
             }).fetch()
             if (!existUser)
                 throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)
@@ -262,11 +267,13 @@ module.exports = {
         let existUser = await User.findOne({ fbId: decodedToken.uid })
 
         if (!existUser) {
+            const nickName = generateUsername()
+            const { name } = await uploadImage(decodedToken.picture, 'user/' + nickName, 'avatar')
             existUser = await User.create({
                 fbId: decodedToken.uid,
-                image: decodedToken.picture,
+                image: `user/${nickName}/${name}`,
                 fullName: decodedToken.name,
-                nickName: generateUsername()
+                nickName
             }).fetch()
             if (!existUser)
                 throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)

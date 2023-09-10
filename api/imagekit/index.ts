@@ -13,12 +13,12 @@ const imageKit = new ImageKit({
     urlEndpoint: IMAGEKIT_URL_END_POINT
 })
 
-export const uploadImage = async () => {
+export const uploadImage = async (image: string, folder: string, fileName: string) => {
     try {
         const respone = await imageKit.upload({
-            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
-            folder: 'comic/tryen1',
-            fileName: '002.jpg',
+            file: image,
+            folder: folder,
+            fileName: fileName,
             extensions: [
                 {
                     "name": "google-auto-tagging",
@@ -27,7 +27,7 @@ export const uploadImage = async () => {
                 }
             ]
         })
-        return respone.fileId
+        return respone
     } catch (error: any) {
         throw new AppError(400, error.message, 400)
     }

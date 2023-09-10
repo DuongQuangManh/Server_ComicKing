@@ -11,11 +11,11 @@ import tryCatch from "../utils/tryCatch";
 module.exports = {
 
     upload: tryCatch(async (req, res) => {
-        const allResults = await mutipleUpload()
+        const result = await uploadImage('https://ik.imagekit.io/c7aqey5nn/user/avatar.png', 'user/abc', 'avatar')
         return res.status(200).json({
             err: 200,
             message: 'upload success',
-            allResults
+            result
         })
     }),
 

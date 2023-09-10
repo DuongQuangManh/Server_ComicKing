@@ -11,5 +11,6 @@ export const constants = {
     COMMON_STATUS: {
         ACTIVE: 1,
         IN_ACTIVE: 2
-    }
+    },
+    DEFAULT_AVATAR: 'user/avatar.png'
 }
