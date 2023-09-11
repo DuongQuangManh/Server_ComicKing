@@ -60,7 +60,7 @@ export const otpVerificationhandler = async (
     const otpObj = {
         email: email,
         otpType: type,
-        expireAt: Date.now() + OTP_TIME_EXPIRE,
+        expiredAt: Date.now() + OTP_TIME_EXPIRE,
         code: generateOtp(),
         data
     }
@@ -87,7 +87,7 @@ export const getValidVerifyOtp = async (email: string, code: string, type: strin
     if (existOtp.code != code)
         throw new AppError(400, 'Mã Otp không hợp lệ.', 400)
 
-    if (existOtp.expireAt < Date.now())
+    if (existOtp.expiredAt < Date.now())
         throw new AppError(400, 'Mã Otp đã hết hạn vui lòng thử lại.', 400)
     return existOtp as IOtpVerification
 }
