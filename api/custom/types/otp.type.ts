@@ -2,7 +2,7 @@ export interface IOtp {
     id?: string,
     email: string,
     code: string,
-    expireAt: number,
+    expiredAt: number,
     otpType: string,
     createdAt?: number,
     updatedAt?: number

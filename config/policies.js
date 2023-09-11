@@ -20,12 +20,12 @@ module.exports.policies = {
   // '*': true,
 
   AuthController: {
-    'changePassword': ['verifyToken'],
+    // 'changePassword': ['verifyToken'],
   },
 
   CategoryController: {
-    'add': ['isAdmin'],
-    'edit': ['isAdmin'],
-    'find': ['isAdmin']
+    // 'add': ['isAdmin'],
+    // 'edit': ['isAdmin'],
+    // 'find': ['isAdmin']
   }
 };

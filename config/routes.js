@@ -64,4 +64,7 @@ module.exports.routes = {
   //comic
 
   //chapter
+
+  //otp
+  'POST /api/otp/find': 'OtpController.find',
 };

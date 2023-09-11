@@ -72,7 +72,7 @@ module.exports = {
         await Otp.create({
             email: newOtpVerify.email,
             code: newOtpVerify.code,
-            expireAt: newOtpVerify.expireAt,
+            expiredAt: newOtpVerify.expiredAt,
             otpType: newOtpVerify.otpType
         })
         return res.status(200).json({
@@ -156,7 +156,7 @@ module.exports = {
             await Otp.create({
                 email: newOtpVerify.email,
                 code: newOtpVerify.code,
-                expireAt: newOtpVerify.expireAt,
+                expiredAt: newOtpVerify.expiredAt,
                 otpType: newOtpVerify.otpType
             })
 
@@ -323,7 +323,7 @@ module.exports = {
         await Otp.create({
             email: newOtpVerify.email,
             code: newOtpVerify.code,
-            expireAt: newOtpVerify.expireAt,
+            expiredAt: newOtpVerify.expiredAt,
             otpType: newOtpVerify.otpType
         })
 
@@ -380,7 +380,7 @@ module.exports = {
             throw new AppError(400, `Không thể gửi otp qua email : ${body.emai}.`, 400)
 
         const otpObj = {
-            expireAt: Date.now() + OTP_TIME_EXPIRE,
+            expiredAt: Date.now() + OTP_TIME_EXPIRE,
             code: generateOtp(),
         }
         sendOtpEmail(otpObj.code, body.email, getEmailTemplateWithOtpType(existOtp.otpType))
@@ -392,7 +392,7 @@ module.exports = {
         await Otp.create({
             email: newOtpVerify.email,
             code: newOtpVerify.code,
-            expireAt: newOtpVerify.expireAt,
+            expiredAt: newOtpVerify.expiredAt,
             otpType: newOtpVerify.otpType
         })
 
@@ -429,7 +429,7 @@ module.exports = {
         await Otp.create({
             email: newOtpVerify.email,
             code: newOtpVerify.code,
-            expireAt: newOtpVerify.expireAt,
+            expiredAt: newOtpVerify.expiredAt,
             otpType: newOtpVerify.otpType
         })
 

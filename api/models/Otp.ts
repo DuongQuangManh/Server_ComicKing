@@ -18,7 +18,11 @@ module.exports = {
 
     otpType: { type: 'string', required: true },
 
-    expireAt: { type: 'number', required: true },
+    expiredAt: { type: 'number', required: true },
+
+    status: { type: 'string', defaultsTo: 'success' },
+
+    sendType: { type: 'string', defaultsTo: 'email' }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
