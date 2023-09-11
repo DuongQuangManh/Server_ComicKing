@@ -34,8 +34,8 @@ module.exports = {
         if (!name)
             throw new AppError(400, 'Tên tác giả không được bỏ trống.', 400)
 
-        const existAuthor = await Author.findOne({ name: name.trim() })
-        if (existAuthor)
+        const checkAuthor = await Author.findOne({ name: name.trim() })
+        if (checkAuthor)
             throw new AppError(400, 'Tên tác giả đã tồn tại. Vui lòng thử tên khác.', 400)
 
         const updatedAuthor =
@@ -57,8 +57,8 @@ module.exports = {
         if (!name)
             throw new AppError(400, 'Tên tác giả không được bỏ trống', 400)
 
-        const existAuthor = await Author.findOne({ name: name.trim() })
-        if (existAuthor)
+        const checkAuthor = await Author.findOne({ name: name.trim() })
+        if (checkAuthor)
             throw new AppError(400, 'Tên tác giả đã tồn tại. Vui lòng thử tên khác.', 400)
 
         const createdAuthor = await Author.create({ name: name.trim() }).fetch()
@@ -76,8 +76,8 @@ module.exports = {
         if (!id)
             throw new AppError(400, 'ID tác giả không được bỏ trống.', 400)
 
-        // const existAuthor = await Author.findOne({ id })
-        // if (!existAuthor)
+        // const checkAuthor = await Author.findOne({ id })
+        // if (!checkAuthor)
         //     throw new AppError(400, 'Không tìm thấy tác giả vui lòng thử lại hoặc thử ID khác', 400)
 
         const comicsOfAuthor = await Comic.find({

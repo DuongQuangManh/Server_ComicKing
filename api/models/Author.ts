@@ -14,8 +14,10 @@ module.exports = {
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
     name: { type: 'string', required: true },
+
     numOfComic: { type: 'number', defaultsTo: 0 },
-    image: { type: 'string', defaultsTo: '' }
+
+    image: { type: 'string', defaultsTo: 'https://ik.imagekit.io/c7aqey5nn/author/avatar.png' }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

@@ -13,9 +13,7 @@ import {
     REGISTER_VERIFY_OTP_MAIL_TEMPLATE
 } from "../constants/EMAIL_TEMPLATES";
 import { OTP_TIME_EXPIRE, OTP_TYPES } from "../constants/OTP";
-import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
-import { uploadImage } from "../imagekit";
 import {
     checkPassword,
     generateToken,
@@ -104,7 +102,6 @@ module.exports = {
         const newUser = await User.create({
             email: body.email,
             ...oldOtpVerify.data,
-            image: constants.DEFAULT_AVATAR
         }).fetch()
         if (!newUser)
             throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
@@ -143,13 +140,13 @@ module.exports = {
         checkPassword(exitsUser.password, body.password)
 
         if (body.needVerifyOtp == undefined || body.needVerifyOtp) {
-            const existOtp = await OtpVerification.findOne({ email: body.email })
+            const checkOtp = await OtpVerification.findOne({ email: body.email })
             // update verifycation object sent to user
             const newOtpVerify = await otpVerificationhandler(
                 body.email,
                 OTP_TYPES.LOGIN,
                 {},
-                existOtp,
+                checkOtp,
                 LOGIN_VERIFY_OTP_MAIL_TEMPLATE
             )
 
@@ -203,24 +200,24 @@ module.exports = {
         if (!newOtpVerify)
             throw new AppError(400, 'Lỗi cập nhật mã Otp vui lòng thử lại.', 400)
 
-        const existUser = await User.findOne({
+        const checkUser = await User.findOne({
             where: { email: body.email },
             select: ['email', 'nickName', 'image', 'fullName']
         })
-        if (!existUser)
+        if (!checkUser)
             throw new AppError(400, "Người dùng không tồn tại.", 400)
 
         const accessToken = generateToken({
-            email: existUser.email,
-            nickName: existUser.nickName,
-            id: existUser.id
+            email: checkUser.email,
+            nickName: checkUser.nickName,
+            id: checkUser.id
         })
         return res.status(200).json({
             err: 200,
             message: 'Đăng nhập thành công',
             data: {
                 accessToken,
-                ...existUser
+                ...checkUser
             }
         })
     }),
@@ -228,35 +225,34 @@ module.exports = {
     loginWithGoogle: tryCatch(async (req, res) => {
         const idToken = req.body.idToken
         const decodedToken = await authAdmin.auth().verifyIdToken(idToken)
-        let existUser = await User.findOne({ email: decodedToken.email })
-        if (!existUser) {
+        let checkUser = await User.findOne({ email: decodedToken.email })
+        if (!checkUser) {
             const nickName = generateUsername()
-            const { name } = await uploadImage(decodedToken.picture, 'user/' + nickName, 'avatar')
-            existUser = await User.create({
+            checkUser = await User.create({
                 email: decodedToken.email?.toLowerCase(),
-                image: `user/${nickName}/${name}`,
+                image: decodedToken.picture,
                 fullName: decodedToken.name,
                 nickName,
             }).fetch()
-            if (!existUser)
+            if (!checkUser)
                 throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)
         }
 
         const accessToken = generateToken({
-            email: existUser.email,
-            nickName: existUser.nickName,
-            id: existUser.id
+            email: checkUser.email,
+            nickName: checkUser.nickName,
+            id: checkUser.id
         })
         return res.status(200).json({
             err: 200,
             message: 'Đăng nhập thành công',
             data: {
                 accessToken,
-                email: existUser.email,
-                image: existUser.image,
-                id: existUser.id,
-                fullName: existUser.fullName,
-                nickName: existUser.nickName
+                email: checkUser.email,
+                image: checkUser.image,
+                id: checkUser.id,
+                fullName: checkUser.fullName,
+                nickName: checkUser.nickName
             }
         })
     }),
@@ -264,35 +260,34 @@ module.exports = {
     loginWithFacebook: tryCatch(async (req, res) => {
         const idToken = req.body.idToken
         const decodedToken = await authAdmin.auth().verifyIdToken(idToken)
-        let existUser = await User.findOne({ fbId: decodedToken.uid })
+        let checkUser = await User.findOne({ fbId: decodedToken.uid })
 
-        if (!existUser) {
+        if (!checkUser) {
             const nickName = generateUsername()
-            const { name } = await uploadImage(decodedToken.picture, 'user/' + nickName, 'avatar')
-            existUser = await User.create({
+            checkUser = await User.create({
                 fbId: decodedToken.uid,
-                image: `user/${nickName}/${name}`,
+                image: decodedToken.picture,
                 fullName: decodedToken.name,
                 nickName
             }).fetch()
-            if (!existUser)
+            if (!checkUser)
                 throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)
         }
 
         const accessToken = generateToken({
-            fbId: existUser.fbId,
-            nickName: existUser.nickName,
-            id: existUser.id
+            fbId: checkUser.fbId,
+            nickName: checkUser.nickName,
+            id: checkUser.id
         })
         return res.status(200).json({
             err: 200,
             message: 'Đăng nhập thành công',
             data: {
                 accessToken,
-                image: existUser.image,
-                id: existUser.id,
-                fullName: existUser.fullName,
-                nickName: existUser.nickName
+                image: checkUser.image,
+                id: checkUser.id,
+                fullName: checkUser.fullName,
+                nickName: checkUser.nickName
             }
         })
     }),
@@ -302,13 +297,13 @@ module.exports = {
         forgotPassValidation(body)
         body.email = body.email?.toLowerCase()
 
-        const existUser = await User.findOne({ email: body.email })
-        if (!existUser)
+        const checkUser = await User.findOne({ email: body.email })
+        if (!checkUser)
             throw new AppError(400, 'Email không tồn tại trong hệ thống.', 400)
-        if (existUser.birthday != body.birthday)
+        if (checkUser.birthday != body.birthday)
             throw new AppError(400, 'Ngày sinh không hợp lệ.', 400)
 
-        const existOtp = await OtpVerification.findOne({ email: body.email })
+        const checkOtp = await OtpVerification.findOne({ email: body.email })
         // update verifycation object sent to user
         const newOtpVerify = await otpVerificationhandler(
             body.email,
@@ -316,7 +311,7 @@ module.exports = {
             {
                 password: hashPassword(body.password),
             },
-            existOtp,
+            checkOtp,
             FORGOT_VERIFY_OTP_MAIL_TEMPLATE
         )
 
@@ -374,16 +369,16 @@ module.exports = {
             throw new AppError(400, value.error.message, 400)
         }
 
-        const existOtp = await OtpVerification.findOne({ email: body.email })
+        const checkOtp = await OtpVerification.findOne({ email: body.email })
         // update verifycation object sent to user
-        if (!existOtp)
+        if (!checkOtp)
             throw new AppError(400, `Không thể gửi otp qua email : ${body.emai}.`, 400)
 
         const otpObj = {
             expiredAt: Date.now() + OTP_TIME_EXPIRE,
             code: generateOtp(),
         }
-        sendOtpEmail(otpObj.code, body.email, getEmailTemplateWithOtpType(existOtp.otpType))
+        sendOtpEmail(otpObj.code, body.email, getEmailTemplateWithOtpType(checkOtp.otpType))
 
         const newOtpVerify = await OtpVerification
             .updateOne({ email: body.email })
@@ -408,13 +403,13 @@ module.exports = {
         changePassValidation(body)
         body.email = body.email?.toLowerCase()
 
-        const existUser = await User.findOne({ email: body.email })
-        if (!existUser)
+        const checkUser = await User.findOne({ email: body.email })
+        if (!checkUser)
             throw new AppError(400, 'Email không tồn tại trong hệ thống.', 400)
 
-        checkPassword(existUser.password, body.oldPass)
+        checkPassword(checkUser.password, body.oldPass)
 
-        const existOtp = await OtpVerification.findOne({ email: body.email })
+        const checkOtp = await OtpVerification.findOne({ email: body.email })
         // update verifycation object sent to user
         const newOtpVerify = await otpVerificationhandler(
             body.email,
@@ -422,7 +417,7 @@ module.exports = {
             {
                 password: hashPassword(body.password),
             },
-            existOtp,
+            checkOtp,
             CHANGE_VERIFY_OTP_MAIL_TEMPLATE
         )
 
