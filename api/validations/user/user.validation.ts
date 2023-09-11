@@ -1,5 +1,5 @@
 import { AppError } from "../../custom/customClass"
-import { changePassShema, forgotPassShema, loginShema, registerShema, verifyEmailOtpShema } from "./user.schema"
+import { changePassShema, forgotPassShema, loginShema, registerShema, updateProfileShema, verifyEmailOtpShema } from "./user.schema"
 
 
 export const registerValidation = (body: any) => {
@@ -32,6 +32,13 @@ export const forgotPassValidation = (body: any) => {
 
 export const changePassValidation = (body: any) => {
     const value = changePassShema.validate(body)
+    if (value.error) {
+        throw new AppError(400, value.error.message, 400)
+    }
+}
+
+export const updateProfileValidation = (body: any) => {
+    const value = updateProfileShema.validate(body)
     if (value.error) {
         throw new AppError(400, value.error.message, 400)
     }

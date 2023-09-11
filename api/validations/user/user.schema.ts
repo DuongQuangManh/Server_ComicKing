@@ -5,7 +5,11 @@ import {
     codeShema,
     confirmPasswordShema,
     dateShema,
-    fullNameShema
+    fullNameShema,
+    nickNameShema,
+    genderSchema,
+    idShema,
+    imageShema
 } from '../index.types'
 
 export const registerShema = Joi.object({
@@ -39,4 +43,12 @@ export const changePassShema = Joi.object({
     oldPass: passwordShema,
     password: passwordShema,
     confirmPassword: confirmPasswordShema
+})
+
+export const updateProfileShema = Joi.object({
+    nickName: nickNameShema,
+    birthday: dateShema,
+    gender: genderSchema,
+    id: idShema,
+    image: imageShema
 })

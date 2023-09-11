@@ -12,44 +12,21 @@ module.exports = {
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-    fullName: {
-      type: 'string',
-      required: true
-    },
+    fullName: { type: 'string', required: true },
 
-    email: {
-      type: 'string',
-      unique: true,
-      isEmail: true,
-      maxLength: 255,
-    },
+    email: { type: 'string', unique: true, isEmail: true, maxLength: 255, },
 
-    fbId: {
-      type: 'string',
-      defaultsTo: ''
-    },
+    fbId: { type: 'string', defaultsTo: '' },
 
-    nickName: {
-      type: 'string',
-      unique: true,
-      maxLength: 32
-    },
+    nickName: { type: 'string', unique: true, maxLength: 32 },
 
-    password: {
-      type: 'string',
-      minLength: 6,
-      maxLength: 255,
-    },
+    password: { type: 'string', minLength: 6, maxLength: 255, },
 
-    image: {
-      type: 'string',
-      defaultsTo: ''
-    },
+    image: { type: 'string', defaultsTo: 'https://ik.imagekit.io/c7aqey5nn/user/avatar.png' },
 
-    birthday: {
-      type: 'string',
-      defaultsTo: ''
-    }
+    birthday: { type: 'string', defaultsTo: '' },
+
+    gender: { type: 'string', defaultsTo: 'None' }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

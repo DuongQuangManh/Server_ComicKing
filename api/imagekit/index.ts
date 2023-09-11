@@ -4,13 +4,13 @@ import { AppError } from '../custom/customClass'
 const {
     IMAGEKIT_PRIVATE_KEY = '',
     IMAGEKIT_PUBLIC_KEY = '',
-    IMAGEKIT_URL_END_POINT = ''
+    IMAGEKIT_URL = ''
 } = process.env
 
 const imageKit = new ImageKit({
     privateKey: IMAGEKIT_PRIVATE_KEY,
     publicKey: IMAGEKIT_PUBLIC_KEY,
-    urlEndpoint: IMAGEKIT_URL_END_POINT
+    urlEndpoint: IMAGEKIT_URL
 })
 
 export const uploadImage = async (image: string, folder: string, fileName: string) => {

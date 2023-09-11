@@ -12,5 +12,6 @@ export const constants = {
         ACTIVE: 1,
         IN_ACTIVE: 2
     },
-    DEFAULT_AVATAR: 'user/avatar.png'
+    USER_AVATAR: 'user/avatar.png',
+    AUTHOR_AVATAR: 'author/avatar.png'
 }

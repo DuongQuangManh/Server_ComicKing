@@ -67,4 +67,8 @@ module.exports.routes = {
 
   //otp
   'POST /api/otp/find': 'OtpController.find',
+
+  //user
+  'POST /api/user/getProfile': 'UserController.getProfile',
+  'POST /api/user/updateProfile': 'UserController.updateProfile',
 };
