@@ -1,16 +1,17 @@
 export const constants = {
     IMAGE_FOLDER: {
         COMIC: "comic",
-        USER: "user"
+        USER: "user",
+        AUTHOR: "author"
     },
     COMIC_STATUS: {
-        IN_PROCESS: 1,
-        FULL: 2,
-        INACTIVE: 2
+        IN_PROCESS: 'IN_PROCESS',
+        FULL: 'FULL',
+        INACTIVE: 'INACTIVE'
     },
     COMMON_STATUS: {
-        ACTIVE: 1,
-        IN_ACTIVE: 2
+        ACTIVE: 'ACTIVE',
+        IN_ACTIVE: 'IN_ACTIVE'
     },
     USER_AVATAR: 'user/avatar.png',
     AUTHOR_AVATAR: 'author/avatar.png',

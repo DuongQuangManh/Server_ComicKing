@@ -14,6 +14,22 @@ declare const User: any
 
 module.exports = {
 
+    find: tryCatch(async (req, res) => {
+
+    }),
+
+    add: tryCatch(async (req, res) => {
+
+    }),
+
+    edit: tryCatch(async (req, res) => {
+
+    }),
+
+    detail: tryCatch(async (req, res) => {
+
+    }),
+
     getProfile: tryCatch(async (req, res) => {
         const { id } = req.body
 
@@ -80,6 +96,5 @@ module.exports = {
             }
         })
     }),
-
 };
 

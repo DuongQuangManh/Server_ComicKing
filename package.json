@@ -38,7 +38,8 @@
     "sails-mongo": "^2.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",
-    "unique-username-generator": "^1.2.0"
+    "unique-username-generator": "^1.2.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "eslint": "5.16.0"

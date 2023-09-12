@@ -14,8 +14,12 @@ module.exports = {
         //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
         title: { type: 'string', required: true },
+
         images: { type: 'json', columnType: 'array' },
-        numOfView: { type: 'number', defaultsTo: 0 }
+
+        numOfView: { type: 'number', defaultsTo: 0 },
+
+        comic: { model: 'comic' }
 
         //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
         //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

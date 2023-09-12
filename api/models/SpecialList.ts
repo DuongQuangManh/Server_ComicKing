@@ -1,5 +1,5 @@
 /**
- * Comic.ts
+ * SpecialList.ts
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -14,29 +14,16 @@ module.exports = {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-    name: { type: 'string', required: true },
 
-    description: { type: 'string', required: true },
+    title: { type: 'string', required: true },
 
-    categories: { collection: 'category', via: 'comics' },
+    description: { type: 'string', defaultsTo: '' },
 
-    author: { model: 'author' },
+    displayType: { type: 'string', defaultsTo: 'vertical-rect' },
 
-    numOfChapter: { type: 'number', defaultsTo: 0 },
+    comics: { type: 'json', columnType: 'array', defaultsTo: [] },
 
-    status: { type: 'string', defaultsTo: constants.COMIC_STATUS.IN_PROCESS },
-
-    numOfFavorite: { type: 'number', defaultsTo: 0 },
-
-    image: { type: 'string', defaultsTo: '' },
-
-    numOfComment: { type: 'number', defaultsTo: 0 },
-
-    isHot: { type: 'boolean', defaultsTo: false },
-
-    uId: { type: 'string', required: true },
-
-    chapters: { collection: 'chapter', via: 'comic' }
+    status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
