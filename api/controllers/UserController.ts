@@ -38,7 +38,7 @@ module.exports = {
 
     updateProfile: tryCatch(async (req, res) => {
         updateProfileValidation(req.body)
-        const { id, nickName, birthday, gender, image } = req.body
+        const { id, nickName, birthday, gender, image, fullName } = req.body
 
         let checkUser = await await User.findOne({ id })
         if (!checkUser)
@@ -61,7 +61,8 @@ module.exports = {
                     nickName,
                     birthday,
                     gender,
-                    image: url
+                    image: url,
+                    fullName
                 })
 
         if (!updatedUser)
@@ -74,7 +75,8 @@ module.exports = {
                 nickName: updatedUser.nickName,
                 image: updatedUser.image,
                 gender: updatedUser.gender,
-                birthday: updatedUser.birthday
+                birthday: updatedUser.birthday,
+                fullName: updatedUser.fullName
             }
         })
     }),

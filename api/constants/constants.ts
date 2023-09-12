@@ -13,5 +13,6 @@ export const constants = {
         IN_ACTIVE: 2
     },
     USER_AVATAR: 'user/avatar.png',
-    AUTHOR_AVATAR: 'author/avatar.png'
+    AUTHOR_AVATAR: 'author/avatar.png',
+    DATE_TIME_FORMAT: 'HH:mm  DD-MM-YYYY'
 }

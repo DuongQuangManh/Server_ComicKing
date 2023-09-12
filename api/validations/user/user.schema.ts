@@ -50,5 +50,6 @@ export const updateProfileShema = Joi.object({
     birthday: dateShema,
     gender: genderSchema,
     id: idShema,
-    image: imageShema
+    image: imageShema,
+    fullName: fullNameShema
 })
