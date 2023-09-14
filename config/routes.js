@@ -38,7 +38,6 @@ module.exports.routes = {
   'POST /api/user/register': 'AuthController.register',
   'POST /api/user/registerVerifyOtp': 'AuthController.registerVerifyOtp',
   'POST /api/user/loginVerifyOtp': 'AuthController.loginVerifyOtp',
-  'POST /api/upload': 'ComicController.upload',
   'POST /api/user/loginWithGoogle': 'AuthController.loginWithGoogle',
   'POST /api/user/forgotPassword': 'AuthController.forgotPassword',
   'POST /api/user/forgotPasswordVerifyOtp': 'AuthController.forgotPasswordVerifyOtp',
@@ -62,13 +61,33 @@ module.exports.routes = {
   'POST /api/author/detail': 'AuthorController.detail',
 
   //comic
+  'POST /api/comic/clientFind': 'ComicController.clientFind',
+  'POST /api/comic/adminFind': 'ComicController.adminFind',
+  'POST /api/comic/add': 'ComicController.add',
+  'POST /api/comic/edit': 'ComicController.edit',
+  'POST /api/comic/detail': 'ComicController.detail',
 
   //chapter
+  'POST /api/chapter/find': 'ChapterController.find',
+  'POST /api/chapter/add': 'ChapterController.add',
+  'POST /api/chapter/edit': 'ChapterController.edit',
+  'POST /api/comic/detail': 'ChapterController.detail',
 
   //otp
   'POST /api/otp/find': 'OtpController.find',
+  'POST /api/otp/otpVerificationFind': 'OtpController.otpVerificationFind',
 
   //user
+  'POST /api/user/add': 'UserController.add',
+  'POST /api/user/edit': 'UserController.edit',
+  'POST /api/user/find': 'UserController.find',
+  'POST /api/user/detail': 'UserController.detail',
   'POST /api/user/getProfile': 'UserController.getProfile',
   'POST /api/user/updateProfile': 'UserController.updateProfile',
+
+  //speciallist
+  'POST /api/special/add': 'SpecialListController.add',
+  'POST /api/special/edit': 'SpecialListController.edit',
+  'POST /api/special/find': 'SpecialListController.find',
+  'POST /api/special/detail': 'SpecialListController.detail',
 };
