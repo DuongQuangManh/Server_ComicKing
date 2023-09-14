@@ -75,6 +75,7 @@ module.exports.routes = {
 
   //otp
   'POST /api/otp/find': 'OtpController.find',
+  'POST /api/otp/otpVerificationFind': 'OtpController.otpVerificationFind',
 
   //user
   'POST /api/user/add': 'UserController.add',
@@ -88,4 +89,5 @@ module.exports.routes = {
   'POST /api/special/add': 'SpecialListController.add',
   'POST /api/special/edit': 'SpecialListController.edit',
   'POST /api/special/find': 'SpecialListController.find',
+  'POST /api/special/detail': 'SpecialListController.detail',
 };

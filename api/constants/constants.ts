@@ -10,8 +10,8 @@ export const constants = {
         INACTIVE: 'INACTIVE'
     },
     COMMON_STATUS: {
-        ACTIVE: 'ACTIVE',
-        IN_ACTIVE: 'IN_ACTIVE'
+        ACTIVE: 'Active',
+        IN_ACTIVE: 'InActive'
     },
     USER_AVATAR: 'user/avatar.png',
     AUTHOR_AVATAR: 'author/avatar.png',

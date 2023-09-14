@@ -20,6 +20,8 @@ module.exports = {
 
         otpType: { type: 'string', required: true },
 
+        sendType: { type: 'string', defaultsTo: 'email' },
+
         data: { type: 'json', defaultsTo: {} }
 
         //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗

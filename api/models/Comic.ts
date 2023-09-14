@@ -32,11 +32,19 @@ module.exports = {
 
     numOfComment: { type: 'number', defaultsTo: 0 },
 
+    numOfView: { type: 'number', defaultsTo: 0 },
+
     isHot: { type: 'boolean', defaultsTo: false },
 
     uId: { type: 'string', required: true },
 
-    chapters: { collection: 'chapter', via: 'comic' }
+    chapters: { collection: 'chapter', via: 'comic' },
+
+    specialList: { model: 'specialList' },
+
+    start: { type: 'number', defaultsTo: 0 },
+
+    numOfRate: { type: 'number', defaultsTo: 0 }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
