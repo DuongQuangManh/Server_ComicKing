@@ -15,15 +15,21 @@ declare const Comic: any
 module.exports = {
 
     find: tryCatch(async (req, res) => {
+        const { limit = 10, skip = 0 } = req.body
+        const findOption = { limit, skip }
 
+        const total = await Author.count({})
         const authors = await Author.find({
-            select: ['name', 'numOfComic', 'imagePath']
+            select: ['name', 'description', 'numOfComic', 'status', 'createdAt'],
+            ...findOption
         })
 
         return res.status(200).json({
             err: 200,
+            message: 'Success',
             data: authors,
-            message: 'Success'
+            total,
+            ...findOption
         })
     }),
 

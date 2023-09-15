@@ -5,17 +5,43 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+import moment from "moment";
 import { AppError } from "../custom/customClass";
 import { uploadImage } from "../imagekit";
 import tryCatch from "../utils/tryCatch";
 import { updateProfileValidation } from "../validations/user/user.validation";
+import { constants } from "../constants/constants";
 
 declare const User: any
 
 module.exports = {
 
     find: tryCatch(async (req, res) => {
+        const { skip = 0, limit = 10, } = req.body
+        const findOptions = {
+            skip,
+            limit
+        }
 
+        const total = await User.count({})
+        const listUser = await User.find({
+            select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status'],
+            ...findOptions
+        })
+
+        for (let user of listUser) {
+            user.createdAt = moment(user.createdAt).format(constants.DATE_TIME_FORMAT)
+            if (!user.fbId) user.fbId = 'None'
+            if (!user.email) user.email = 'None'
+        }
+
+        return res.status(200).json({
+            err: 200,
+            messsage: 'Success',
+            data: listUser,
+            total,
+            ...findOptions
+        })
     }),
 
     add: tryCatch(async (req, res) => {

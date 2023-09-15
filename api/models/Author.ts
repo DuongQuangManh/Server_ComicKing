@@ -5,6 +5,8 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
+import { constants } from "../constants/constants";
+
 module.exports = {
 
   attributes: {
@@ -15,7 +17,11 @@ module.exports = {
 
     name: { type: 'string', required: true },
 
+    description: { type: 'string', defaultsTo: 'Tác giả của ứng dụng.' },
+
     numOfComic: { type: 'number', defaultsTo: 0 },
+
+    status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
     image: { type: 'string', defaultsTo: 'https://ik.imagekit.io/c7aqey5nn/author/avatar.png' }
 

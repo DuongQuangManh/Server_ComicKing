@@ -24,10 +24,12 @@ module.exports = {
             var total = await SpecialList.count({})
         }
         const specialList = await SpecialList.find({})
+
         for (let sp of specialList) {
             sp.createdAt = moment(sp.createdAt).format(constants.DATE_TIME_FORMAT)
             sp.numOfComic = sp.comic?.length ?? 0
         }
+
         return res.status(200).json({
             err: 200,
             message: 'Success',

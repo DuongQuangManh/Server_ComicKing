@@ -49,7 +49,7 @@ module.exports.routes = {
   'POST /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp',
 
   //category
-  'POST /api/category/findAll': 'CategoryController.findAll',
+  'POST /api/category/get': 'CategoryController.get',
   'POST /api/category/find': 'CategoryController.find',
   'POST /api/category/add': 'CategoryController.add',
   'POST /api/category/edit': 'CategoryController.edit',

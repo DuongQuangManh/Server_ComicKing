@@ -5,6 +5,8 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
+import { constants } from "../constants/constants";
+
 module.exports = {
 
   attributes: {
@@ -20,7 +22,7 @@ module.exports = {
 
     expiredAt: { type: 'number', required: true },
 
-    status: { type: 'string', defaultsTo: 'success' },
+    status: { type: 'string', defaultsTo: constants.COMMON_STATUS.SUCCESS },
 
     sendType: { type: 'string', defaultsTo: 'email' }
 

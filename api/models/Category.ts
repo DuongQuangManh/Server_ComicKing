@@ -5,6 +5,8 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
+import { constants } from "../constants/constants";
+
 module.exports = {
 
   attributes: {
@@ -17,7 +19,7 @@ module.exports = {
 
     description: { type: 'string', required: true },
 
-    status: { type: 'string', defaultsTo: 'active' },
+    status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
     comics: { collection: 'comic', via: 'categories' },
 
