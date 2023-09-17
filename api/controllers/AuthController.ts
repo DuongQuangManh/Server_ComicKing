@@ -34,6 +34,7 @@ import {
     verifyEmailOtpValidation
 } from "../validations/user/user.validation";
 import { generateUsername } from 'unique-username-generator'
+import { v4 as uuidV4 } from 'uuid'
 
 declare var User: any
 declare var Otp: any
@@ -99,9 +100,11 @@ module.exports = {
         if (!newOtpVerify)
             throw new AppError(400, 'Lỗi cập nhật mã Otp vui lòng thử lại.', 400)
 
+        const uId = uuidV4()
         const newUser = await User.create({
             email: body.email,
             ...oldOtpVerify.data,
+            uId
         }).fetch()
         if (!newUser)
             throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)

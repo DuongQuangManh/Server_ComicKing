@@ -11,6 +11,8 @@ import { uploadImage } from "../imagekit";
 import tryCatch from "../utils/tryCatch";
 import { updateProfileValidation } from "../validations/user/user.validation";
 import { constants } from "../constants/constants";
+import { v4 as uuidV4 } from 'uuid'
+import { hashPassword } from "../services/AuthService";
 
 declare const User: any
 
@@ -25,12 +27,13 @@ module.exports = {
 
         const total = await User.count({})
         const listUser = await User.find({
-            select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status'],
+            select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status', 'updatedAt'],
             ...findOptions
         })
 
         for (let user of listUser) {
             user.createdAt = moment(user.createdAt).format(constants.DATE_TIME_FORMAT)
+            user.updatedAt = moment(user.updatedAt).format(constants.DATE_TIME_FORMAT)
             if (!user.fbId) user.fbId = 'None'
             if (!user.email) user.email = 'None'
         }
@@ -45,15 +48,105 @@ module.exports = {
     }),
 
     add: tryCatch(async (req, res) => {
+        const { email, fullName, nickName, birthday, gender, status, level, image, password } = req.body
+        console.log(req.body)
 
+        if (!fullName || !nickName || !birthday || !gender || !status || !level || !email || !password) {
+            throw new AppError(400, 'Bad Request', 400)
+        }
+
+        const checkUser = await User.findOne({
+            or: [
+                { nickName },
+                { email }
+            ]
+        })
+        if (checkUser)
+            throw new AppError(400, 'User đã tồn tại vui lòng nhập lại Email hoặc Nickname.', 400)
+
+        const uId = uuidV4()
+        if (image) {
+            var { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.USER}/${uId}`, 'avatar')
+        }
+
+        const createdUser = await User.create({
+            fullName,
+            nickName,
+            birthday,
+            gender,
+            status,
+            level,
+            image: url ?? `${process.env}${constants.USER_AVATAR}`,
+            uId,
+            email,
+            password: hashPassword(password)
+        }).fetch()
+        if (!createdUser) {
+            throw new AppError(400, 'Không thể cập nhật user vui lòng thử lại', 400)
+        }
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success'
+        })
     }),
 
     edit: tryCatch(async (req, res) => {
+        const { id, fullName, nickName, birthday, gender, status, level, image } = req.body
 
+        if (!id || !fullName || !nickName || !birthday || !gender || !status || !level) {
+
+            throw new AppError(400, 'Bad Request', 400)
+        }
+
+        if (await User.findOne({
+            where: {
+                nickName,
+                id: { '!=': id }
+            }
+        })) throw new AppError(400, 'Nickname đã tồn tại vui lòng nhập lại.', 400)
+
+        const checkUser = await User.findOne({ id })
+        if (!checkUser) {
+            throw new AppError(400, 'User không tồn tại', 400)
+        }
+
+        if (image && checkUser.image != image) {
+            var { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.USER}/${checkUser.uId}`, 'avatar')
+        }
+        const updatedUser = await User.updateOne({ id }).set({
+            fullName,
+            nickName,
+            birthday,
+            gender,
+            status,
+            level,
+            image: url ?? checkUser.image
+        })
+        if (!updatedUser) {
+            throw new AppError(400, 'Không thể cập nhật user vui lòng thử lại', 400)
+        }
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success'
+        })
     }),
 
     detail: tryCatch(async (req, res) => {
+        const { id } = req.body
 
+        let user = await User.findOne({ id })
+
+        delete user.password
+        user.createdAt = moment(user.createdAt).format(constants.DATE_TIME_FORMAT)
+        user.updatedAt = moment(user.updatedAt).format(constants.DATE_TIME_FORMAT)
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success',
+            data: user
+        })
     }),
 
     getProfile: tryCatch(async (req, res) => {

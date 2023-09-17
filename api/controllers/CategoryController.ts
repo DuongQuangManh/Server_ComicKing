@@ -27,7 +27,7 @@ module.exports = {
             message: 'Find Success',
             err: 200,
             data: categories,
-            findOption
+            ...findOption
         })
     }),
 

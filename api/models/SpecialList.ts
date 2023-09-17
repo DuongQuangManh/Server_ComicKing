@@ -21,11 +21,21 @@ module.exports = {
 
     displayType: { type: 'string', defaultsTo: 'vertical-rect' },
 
-    comics: { collection: 'comic', via: 'specialList' },
+    limit: { type: 'number', defaultsTo: 6 },
 
     status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
-    canMore: { type: 'boolean', defaultsTo: false }
+    // canMore: { type: 'boolean', defaultsTo: false },
+
+    data: {
+      type: 'json',
+      columnType: 'object',
+      defaultsTo: {
+        canMore: false,
+        api: '',
+        body: {}
+      }
+    }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
