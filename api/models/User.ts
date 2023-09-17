@@ -32,7 +32,11 @@ module.exports = {
 
     status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
+    level: { type: 'number', defaultsTo: 1 },
 
+    favorite: { type: 'json', columnType: 'array', defaultsTo: [] },
+
+    uId: { type: 'string', required: true },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
