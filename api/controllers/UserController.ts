@@ -49,7 +49,6 @@ module.exports = {
 
     add: tryCatch(async (req, res) => {
         const { email, fullName, nickName, birthday, gender, status, level, image, password } = req.body
-        console.log(req.body)
 
         if (!fullName || !nickName || !birthday || !gender || !status || !level || !email || !password) {
             throw new AppError(400, 'Bad Request', 400)

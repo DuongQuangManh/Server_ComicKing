@@ -42,9 +42,11 @@ module.exports = {
 
     specialList: { model: 'specialList' },
 
-    start: { type: 'number', defaultsTo: 0 },
+    star: { type: 'number', defaultsTo: 0 },
 
-    numOfRate: { type: 'number', defaultsTo: 0 }
+    numOfRate: { type: 'number', defaultsTo: 0 },
+
+    publishedAt: { type: 'number', defaultsTo: 0 }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

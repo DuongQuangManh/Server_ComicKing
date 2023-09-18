@@ -32,8 +32,55 @@ module.exports.routes = {
   * not match any of those, it is matched against static assets.             *
   *                                                                          *
   ***************************************************************************/
+  /*
+    ADMIN
+  */
 
-  // auth
+  // special list
+  'POST /api/admin/addSpecial': 'SpecialListController.add',
+  'POST /api/admin/editSpecial': 'SpecialListController.edit',
+  'POST /api/admin/find': 'SpecialListController.find',
+  'POST /api/admin/detail': 'SpecialListController.detail',
+
+  // user
+  'POST /api/admin/addUser': 'UserController.add',
+  'POST /api/admin/editUser': 'UserController.edit',
+  'POST /api/admin/findUser': 'UserController.find',
+  'POST /api/admin/detailUser': 'UserController.detail',
+
+  // otp
+  'POST /api/admin/findOtp': 'OtpController.find',
+  'POST /api/admin/findOtpVerification': 'OtpController.otpVerificationFind',
+
+  // category
+  'POST /api/admin/findCategory': 'CategoryController.find',
+  'POST /api/admin/addCategory': 'CategoryController.add',
+  'POST /api/admin/editCategory': 'CategoryController.edit',
+
+  // author
+  'POST /api/admin/findAuthor': 'AuthorController.find',
+  'POST /api/admin/editAuthor': 'AuthorController.edit',
+  'POST /api/admin/addAuthor': 'AuthorController.add',
+  'POST /api/admin/detailAuthor': 'AuthorController.detail',
+
+  // comic
+  'POST /api/admin/findComic': 'ComicController.find',
+  'POST /api/admin/addComic': 'ComicController.add',
+  'POST /api/admin/editComic': 'ComicController.edit',
+  'POST /api/admin/detailComic': 'ComicController.detail',
+
+  // chapter
+  'POST /api/admin/findChapter': 'ChapterController.find',
+  'POST /api/admin/addChapter': 'ChapterController.add',
+  'POST /api/admin/editChapter': 'ChapterController.edit',
+  'POST /api/admin/detailChapter': 'ChapterController.detail',
+
+
+  /**
+    MOBIE 
+  **/
+
+  // authen
   'POST /api/user/login': 'AuthController.login',
   'POST /api/user/register': 'AuthController.register',
   'POST /api/user/registerVerifyOtp': 'AuthController.registerVerifyOtp',
@@ -48,46 +95,16 @@ module.exports.routes = {
   'POST /api/user/changePassword': 'AuthController.changePassword',
   'POST /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp',
 
-  //category
-  'POST /api/category/get': 'CategoryController.get',
-  'POST /api/category/find': 'CategoryController.find',
-  'POST /api/category/add': 'CategoryController.add',
-  'POST /api/category/edit': 'CategoryController.edit',
-
-  //author
-  'POST /api/author/find': 'AuthorController.find',
-  'POST /api/author/edit': 'AuthorController.edit',
-  'POST /api/author/add': 'AuthorController.add',
-  'POST /api/author/detail': 'AuthorController.detail',
-
-  //comic
-  'POST /api/comic/clientFind': 'ComicController.clientFind',
-  'POST /api/comic/adminFind': 'ComicController.adminFind',
-  'POST /api/comic/add': 'ComicController.add',
-  'POST /api/comic/edit': 'ComicController.edit',
-  'POST /api/comic/detail': 'ComicController.detail',
-
-  //chapter
-  'POST /api/chapter/find': 'ChapterController.find',
-  'POST /api/chapter/add': 'ChapterController.add',
-  'POST /api/chapter/edit': 'ChapterController.edit',
-  'POST /api/comic/detail': 'ChapterController.detail',
-
-  //otp
-  'POST /api/otp/find': 'OtpController.find',
-  'POST /api/otp/otpVerificationFind': 'OtpController.otpVerificationFind',
-
-  //user
-  'POST /api/user/add': 'UserController.add',
-  'POST /api/user/edit': 'UserController.edit',
-  'POST /api/user/find': 'UserController.find',
-  'POST /api/user/detail': 'UserController.detail',
+  // user
   'POST /api/user/getProfile': 'UserController.getProfile',
   'POST /api/user/updateProfile': 'UserController.updateProfile',
 
-  //speciallist
-  'POST /api/special/add': 'SpecialListController.add',
-  'POST /api/special/edit': 'SpecialListController.edit',
-  'POST /api/special/find': 'SpecialListController.find',
-  'POST /api/special/detail': 'SpecialListController.detail',
+  // category
+  'POST /api/category/get': 'CategoryController.get',
+
+  // comic
+  'POST /api/user/getComic': 'ComicController.get',
+
+
+
 };
