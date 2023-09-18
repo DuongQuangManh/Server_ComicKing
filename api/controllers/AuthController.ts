@@ -142,31 +142,31 @@ module.exports = {
 
         checkPassword(exitsUser.password, body.password)
 
-        if (body.needVerifyOtp == undefined || body.needVerifyOtp) {
-            const checkOtp = await OtpVerification.findOne({ email: body.email })
-            // update verifycation object sent to user
-            const newOtpVerify = await otpVerificationhandler(
-                body.email,
-                OTP_TYPES.LOGIN,
-                {},
-                checkOtp,
-                LOGIN_VERIFY_OTP_MAIL_TEMPLATE
-            )
+        // if (body.needVerifyOtp == undefined || body.needVerifyOtp) {
+        //     const checkOtp = await OtpVerification.findOne({ email: body.email })
+        //     // update verifycation object sent to user
+        //     const newOtpVerify = await otpVerificationhandler(
+        //         body.email,
+        //         OTP_TYPES.LOGIN,
+        //         {},
+        //         checkOtp,
+        //         LOGIN_VERIFY_OTP_MAIL_TEMPLATE
+        //     )
 
-            await Otp.create({
-                email: newOtpVerify.email,
-                code: newOtpVerify.code,
-                expiredAt: newOtpVerify.expiredAt,
-                otpType: newOtpVerify.otpType
-            })
+        //     await Otp.create({
+        //         email: newOtpVerify.email,
+        //         code: newOtpVerify.code,
+        //         expiredAt: newOtpVerify.expiredAt,
+        //         otpType: newOtpVerify.otpType
+        //     })
 
-            return res.status(200).json({
-                err: 200,
-                email: body.email,
-                message: `Vui lòng xác minh mã Otp (6 chữ số) từ email ${body.email} để hoàn thành đăng nhập.`,
-                needVerifyOtp: true
-            })
-        }
+        //     return res.status(200).json({
+        //         err: 200,
+        //         email: body.email,
+        //         message: `Vui lòng xác minh mã Otp (6 chữ số) từ email ${body.email} để hoàn thành đăng nhập.`,
+        //         needVerifyOtp: true
+        //     })
+        // }
 
         const accessToken = generateToken({
             email: exitsUser.email,
