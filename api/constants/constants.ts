@@ -6,7 +6,7 @@ export const constants = {
     },
     COMIC_STATUS: {
         IN_PROCESS: 'INPROCESS',
-        FULL: 'FULL',
+        DONE: 'DONE',
         INACTIVE: 'INACTIVE'
     },
     COMMON_STATUS: {

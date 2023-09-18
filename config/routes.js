@@ -104,6 +104,10 @@ module.exports.routes = {
 
   // comic
   'POST /api/user/getComic': 'ComicController.get',
+  'POST /api/user/getNewestComics': 'ComicController.getNewestComics',
+  'POST /api/user/getProposeComics': 'ComicController.getProposeComics',
+  'POST /api/user/getSliderComics': 'ComicController.getSliderComics',
+  'POST /api/user/getDoneComics': 'ComicController.getDoneComics'
 
 
 
