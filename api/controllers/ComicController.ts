@@ -15,7 +15,9 @@ import moment from "moment";
 import { helper } from "../utils/helper";
 
 declare const Comic: any
-declare const Author: any
+declare const ComicCategory: any
+declare const Category: any
+declare const sails: any
 
 module.exports = {
 
@@ -47,7 +49,7 @@ module.exports = {
         for (let comic of listComic) {
             comic.createdAt = helper.convertToStringDate(comic.createdAt)
             comic.updatedAt = helper.convertToStringDate(comic.updatedAt)
-            comic.publishedAt = helper.convertToStringDate(comic.publishedAt)
+            comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
         }
 
         return res.status(200).json({
@@ -60,33 +62,38 @@ module.exports = {
     }),
 
     add: tryCatch(async (req, res) => {
-        // name, description, categories, author, image, isHot
-        const { image, name, description, author, publishedAt, status } = req.body
-        if (!image || !name || !description || !author || !publishedAt)
+        const { image, name, description, author, publishedAt, status, categories } = req.body
+        if (!image || !name || !description || !author || !publishedAt || !Array.isArray(categories))
             throw new AppError(400, 'Bad Request', 400)
 
         const uId = uuidV4()
-        const { name: uploadedPath } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${uId}/avatar`, 'avatar')
+        // const { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${uId}/avatar`, 'avatar')
 
         const createdComic = await Comic.create({
             name,
             description,
             author,
-            image: `${constants.IMAGE_FOLDER.COMIC}/${uId}/avatar/${uploadedPath}`,
+            image: '',
             uId,
             publishedAt: helper.convertToTimeStamp(publishedAt),
-            status
+            status,
         }).fetch()
         if (!createdComic)
             throw new AppError(400, 'Không thể khởi tạo Comic vui lòng thử lại.', 400)
 
-        const db = Author.getDatastore().manager
-        await db.collection('author').updateOne(
-            { _id: ObjectId(author), },
-            {
-                $inc: { numOfComic: 1 }
-            }
-        )
+        const db = sails.getDatastore().manager
+        // const categoriesObjectId = categories.map(item => ObjectId(item))
+        Promise.all([
+            Comic.addToCollection(createdComic.id, 'categories', categories),
+            db.collection('author').updateOne(
+                { _id: ObjectId(author), },
+                { $inc: { numOfComic: 1 } }
+            ),
+            // db.collection('category').updateMany(
+            //     { _id: { $in: categoriesObjectId } },
+            //     { $inc: { numOfComic: 1 } }
+            // )
+        ])
 
         return res.status(200).json({
             err: 200,
@@ -95,14 +102,66 @@ module.exports = {
     }),
 
     edit: tryCatch(async (req, res) => {
-        const { name, description, categories, author, image, isHot } = req.body
+        console.log(req.body)
+        const { id, image, name, description, author, publishedAt, status, categories } = req.body
+        if (!name || !description || !author || !publishedAt || !Array.isArray(categories))
+            throw new AppError(400, 'Bad Request', 400)
+        if (categories.length > 10)
+            throw new AppError(400, 'Vui lòng giảm bớt thể loại (giới hạn 10).', 400)
 
-        const createdComic = await Comic.create({
-            ...req.body
-        }).fetch()
+        const checkComic = await Comic.findOne({ id })
+        if (!checkComic)
+            throw new AppError(400, 'Truyện không tồn tại vui lòng thử lại.', 400)
 
-        if (!createdComic)
-            throw new AppError(400, 'Không thể khởi tạo Comic vui lòng thử lại.', 400)
+        if (image && checkComic.image != image) {
+            // var { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${checkComic.uId}`, 'avatar')
+        }
+
+        const updatedComic = await Comic.updateOne({ id }).set({
+            name,
+            description,
+            author,
+            publishedAt: helper.convertToTimeStamp(publishedAt),
+            status,
+            image: checkComic.image,
+        })
+        if (!updatedComic)
+            throw new AppError(400, 'Không cập nhật Comic vui lòng thử lại.', 400)
+
+        // get comic categories before
+        const beforeCategoryObj = await ComicCategory.find({
+            where: { comic: id },
+            select: ['category']
+        })
+        // advoid duplicate category id
+        const beforeCategorySet = new Set(beforeCategoryObj.map((item: any) => item.category))
+        const updateCategorySet = new Set(categories)
+        // filter categories need remove or add
+        const categoriesNeedRemove = [...beforeCategorySet].filter((item) => !updateCategorySet.has(item))
+        const categoriesNeedAdd = [...updateCategorySet].filter((item) => !beforeCategorySet.has(item))
+
+        const comicAddCategoriesPromise = Comic.addToCollection(updatedComic.id, 'categories', categoriesNeedAdd)
+        const comicRemoveCategoriesPromise = Comic.removeFromCollection(updatedComic.id, 'categories', categoriesNeedRemove)
+        const updateNumComicOfAuthorPromise = () => {
+            if (updatedComic.author != checkComic.author) {
+                const db = sails.getDatastore().manager
+                return Promise.all([
+                    db.collection('author').updateOne(
+                        { _id: ObjectId(updatedComic.author), },
+                        { $inc: { numOfComic: 1 } }
+                    ),
+                    db.collection('author').updateOne(
+                        { _id: ObjectId(checkComic.author), },
+                        { $inc: { numOfComic: -1 } }
+                    ),
+                ])
+            }
+        }
+        Promise.all([
+            comicAddCategoriesPromise,
+            comicRemoveCategoriesPromise,
+            updateNumComicOfAuthorPromise
+        ])
 
         return res.status(200).json({
             err: 200,
@@ -111,7 +170,34 @@ module.exports = {
     }),
 
     detail: tryCatch(async (req, res) => {
+        const { id, requestType } = req.body
 
+        let comic: any
+        if (requestType == 'update') {
+            const comicDetailPromise = Comic.findOne({ id })
+            const comicCategoriesPromise = ComicCategory.find({
+                where: { comic: id },
+                select: ['category']
+            })
+            const [comicDetail, categories] = await Promise.all([comicDetailPromise, comicCategoriesPromise])
+
+            comic = {
+                ...comicDetail,
+                categories: categories?.map((item: any) => item?.category)
+            }
+        } else {
+            comic = await Comic.findOne({ id })
+                .populate('author')
+                .populate('categories')
+        }
+
+        comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success',
+            data: comic
+        })
     }),
 
     getHomeComics: tryCatch(async (req, res) => {

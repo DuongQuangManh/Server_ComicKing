@@ -75,6 +75,9 @@ module.exports.routes = {
   'POST /api/admin/editChapter': 'ChapterController.edit',
   'POST /api/admin/detailChapter': 'ChapterController.detail',
 
+  // pending data
+  'POST /api/admin/getAdminPendingData': 'PendingController.getAdminPendingData',
+
 
   /**
     MOBIE 

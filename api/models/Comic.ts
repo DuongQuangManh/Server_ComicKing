@@ -18,7 +18,11 @@ module.exports = {
 
     description: { type: 'string', required: true },
 
-    categories: { collection: 'category', via: 'comics' },
+    categories: {
+      collection: 'category',
+      via: 'comic',
+      through: 'comiccategory'
+    },
 
     author: { model: 'author' },
 
@@ -46,7 +50,9 @@ module.exports = {
 
     numOfRate: { type: 'number', defaultsTo: 0 },
 
-    publishedAt: { type: 'number', defaultsTo: 0 }
+    publishedAt: { type: 'number', defaultsTo: 0 },
+
+    numOfLike: { type: 'number', defaultsTo: 0 }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
