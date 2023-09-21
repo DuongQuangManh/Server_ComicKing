@@ -231,11 +231,13 @@ module.exports = {
         let checkUser = await User.findOne({ email: decodedToken.email })
         if (!checkUser) {
             const nickName = generateUsername()
+            const uId = uuidV4()
             checkUser = await User.create({
                 email: decodedToken.email?.toLowerCase(),
                 image: decodedToken.picture,
                 fullName: decodedToken.name,
                 nickName,
+                uId
             }).fetch()
             if (!checkUser)
                 throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)
@@ -267,11 +269,13 @@ module.exports = {
 
         if (!checkUser) {
             const nickName = generateUsername()
+            const uId = uuidV4()
             checkUser = await User.create({
                 fbId: decodedToken.uid,
                 image: decodedToken.picture,
                 fullName: decodedToken.name,
-                nickName
+                nickName,
+                uId
             }).fetch()
             if (!checkUser)
                 throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)

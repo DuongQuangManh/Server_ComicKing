@@ -92,11 +92,8 @@ module.exports = {
 
     edit: tryCatch(async (req, res) => {
         const { id, fullName, nickName, birthday, gender, status, level, image } = req.body
-
-        if (!id || !fullName || !nickName || !birthday || !gender || !status || !level) {
-
+        if (!fullName || !nickName || !birthday || !gender || !status || !level)
             throw new AppError(400, 'Bad Request', 400)
-        }
 
         if (await User.findOne({
             where: {
