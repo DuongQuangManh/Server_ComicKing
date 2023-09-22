@@ -11,7 +11,6 @@ import { mutipleUpload, uploadImage } from "../imagekit";
 import tryCatch from "../utils/tryCatch";
 import { v4 as uuidV4 } from 'uuid'
 import { ObjectId } from 'mongodb'
-import moment from "moment";
 import { helper } from "../utils/helper";
 
 declare const Comic: any
@@ -42,14 +41,19 @@ module.exports = {
 
         const findOption = { skip, limit }
 
-        const total = await Comic.count({})
-        const listComic = await Comic.find({
-            ...findOption
-        })
+        const [total, listComic] =
+            await Promise.all([
+                Comic.count({}),
+                Comic.find({
+                    ...findOption
+                }).populate('author')
+            ])
+
         for (let comic of listComic) {
             comic.createdAt = helper.convertToStringDate(comic.createdAt)
             comic.updatedAt = helper.convertToStringDate(comic.updatedAt)
             comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
+            comic.author = comic.author?.name
         }
 
         return res.status(200).json({
@@ -65,15 +69,17 @@ module.exports = {
         const { image, name, description, author, publishedAt, status, categories } = req.body
         if (!image || !name || !description || !author || !publishedAt || !Array.isArray(categories))
             throw new AppError(400, 'Bad Request', 400)
+        if (categories.length > 10)
+            throw new AppError(400, 'Vui lòng giảm bớt thể loại (giới hạn 10).', 400)
 
         const uId = uuidV4()
-        // const { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${uId}/avatar`, 'avatar')
+        const { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${uId}/avatar`, 'avatar')
 
         const createdComic = await Comic.create({
             name,
             description,
             author,
-            image: '',
+            image: url,
             uId,
             publishedAt: helper.convertToTimeStamp(publishedAt),
             status,
@@ -84,7 +90,7 @@ module.exports = {
         const db = sails.getDatastore().manager
         // const categoriesObjectId = categories.map(item => ObjectId(item))
         Promise.all([
-            Comic.addToCollection(createdComic.id, 'categories', categories),
+            Comic.addToCollection(createdComic.id, 'categories', [...new Set(categories)]),
             db.collection('author').updateOne(
                 { _id: ObjectId(author), },
                 { $inc: { numOfComic: 1 } }
@@ -102,7 +108,6 @@ module.exports = {
     }),
 
     edit: tryCatch(async (req, res) => {
-        console.log(req.body)
         const { id, image, name, description, author, publishedAt, status, categories } = req.body
         if (!name || !description || !author || !publishedAt || !Array.isArray(categories))
             throw new AppError(400, 'Bad Request', 400)
@@ -114,7 +119,7 @@ module.exports = {
             throw new AppError(400, 'Truyện không tồn tại vui lòng thử lại.', 400)
 
         if (image && checkComic.image != image) {
-            // var { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${checkComic.uId}`, 'avatar')
+            var { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${checkComic.uId}`, 'avatar')
         }
 
         const updatedComic = await Comic.updateOne({ id }).set({
@@ -123,7 +128,7 @@ module.exports = {
             author,
             publishedAt: helper.convertToTimeStamp(publishedAt),
             status,
-            image: checkComic.image,
+            image: url ?? checkComic.image,
         })
         if (!updatedComic)
             throw new AppError(400, 'Không cập nhật Comic vui lòng thử lại.', 400)
@@ -191,6 +196,8 @@ module.exports = {
                 .populate('categories')
         }
 
+        comic.createdAt = helper.convertToStringDate(comic.createdAt)
+        comic.updatedAt = helper.convertToStringDate(comic.updatedAt)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
 
         return res.status(200).json({

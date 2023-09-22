@@ -54,6 +54,14 @@ module.exports.http = {
     //   var middlewareFn = skipper({ strict: true });
     //   return middlewareFn;
     // })(),
+    bodyParser: (function () {
+      var opts = { limit: 10000000, parameterLimit: 10000 };
+      var fn;
+
+      // Default to built-in bodyParser:
+      fn = require('skipper');
+      return fn(opts);
+    })()
 
   },
 

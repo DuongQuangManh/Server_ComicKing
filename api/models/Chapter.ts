@@ -5,6 +5,8 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
+import { constants } from "../constants/constants";
+
 module.exports = {
 
     attributes: {
@@ -19,7 +21,9 @@ module.exports = {
 
         numOfView: { type: 'number', defaultsTo: 0 },
 
-        comic: { model: 'comic' }
+        comic: { model: 'comic' },
+
+        status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE }
 
         //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
         //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

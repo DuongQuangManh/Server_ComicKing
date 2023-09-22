@@ -19,13 +19,6 @@ export const uploadImage = async (image: string, folder: string, fileName: strin
             file: image,
             folder: folder,
             fileName: fileName,
-            extensions: [
-                {
-                    "name": "google-auto-tagging",
-                    "minConfidence": 80, // only tags with a confidence value higher than 80% will be attached
-                    "maxTags": 10 // a maximum of 10 tags will be attached
-                }
-            ]
         })
         return respone
     } catch (error: any) {
@@ -34,37 +27,25 @@ export const uploadImage = async (image: string, folder: string, fileName: strin
 
 }
 
-export const mutipleUpload = async () => {
-    let files = [
-        {
-            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
-            fileName: "image1.jpg",
-            folder: 'comic/tryen1',
-        },
-        {
-            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
-            fileName: "image2.jpg",
-            folder: 'comic/tryen1',
-        },
-        {
-            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
-            fileName: "image3.jpg",
-            folder: 'comic/tryen1',
-        },
-        {
-            file: 'https://static.javatpoint.com/computer/images/what-is-the-url.png',
-            fileName: "image4.jpg",
-            folder: 'comic/tryen1',
-        }
-    ];
+export const mutipleUpload = async (files: string[], folder: string, selectField: string = 'all') => {
     try {
-        const uploadPromises = files.map(file => imageKit.upload(file))
+        const uploadPromises = files.map((file, index) => imageKit.upload({
+            file,
+            fileName: index < 10 ? `0${index.toString()}` : index.toString(),
+            folder
+        }))
         const allResults = await Promise.all(uploadPromises)
-
-        return allResults
+        if (selectField == 'all') {
+            return allResults
+        }
+        return allResults.map(result => result[selectField])
     } catch (error: any) {
         throw new AppError(400, error.message, 400)
     }
+}
+
+export const deleteFolder = async (folder: string) => {
+
 }
 
 export default imageKit
