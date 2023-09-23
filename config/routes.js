@@ -53,7 +53,7 @@ module.exports.routes = {
   'POST /api/admin/findOtpVerification': 'OtpController.otpVerificationFind',
 
   // category
-  'POST /api/admin/findCategory': 'CategoryController.find',
+  'POST /api/admin/findCategory': 'CategoryController.adminFind',
   'POST /api/admin/addCategory': 'CategoryController.add',
   'POST /api/admin/editCategory': 'CategoryController.edit',
 
@@ -64,16 +64,16 @@ module.exports.routes = {
   'POST /api/admin/detailAuthor': 'AuthorController.detail',
 
   // comic
-  'POST /api/admin/findComic': 'ComicController.find',
+  'POST /api/admin/findComic': 'ComicController.adminFind',
   'POST /api/admin/addComic': 'ComicController.add',
   'POST /api/admin/editComic': 'ComicController.edit',
-  'POST /api/admin/detailComic': 'ComicController.detail',
+  'POST /api/admin/detailComic': 'ComicController.adminDetail',
 
   // chapter
   'POST /api/admin/findChapter': 'ChapterController.find',
   'POST /api/admin/addChapter': 'ChapterController.add',
   'POST /api/admin/editChapter': 'ChapterController.edit',
-  'POST /api/admin/detailChapter': 'ChapterController.detail',
+  'POST /api/admin/detailChapter': 'ChapterController.adminDetail',
 
   // pending data
   'POST /api/admin/getAdminPendingData': 'PendingController.getAdminPendingData',
@@ -106,12 +106,11 @@ module.exports.routes = {
   'POST /api/category/get': 'CategoryController.get',
 
   // comic
-  'POST /api/user/getComic': 'ComicController.get',
+  'POST /api/user/findComic': 'ComicController.clientFind',
+  'POST /api/user/detailComic': 'ComicController.clientDetail',
   'POST /api/user/getNewestComics': 'ComicController.getNewestComics',
   'POST /api/user/getProposeComics': 'ComicController.getProposeComics',
   'POST /api/user/getSliderComics': 'ComicController.getSliderComics',
   'POST /api/user/getDoneComics': 'ComicController.getDoneComics'
-
-
 
 };

@@ -8,5 +8,10 @@ export const helper = {
     },
     convertToTimeStamp: (stringDate: string, format = constants.DATE_FORMAT) => {
         return moment(stringDate, format).valueOf()
+    },
+    deleteFields: (obj: any, ...fields: string[]) => {
+        for (let field of fields) {
+            delete obj[field]
+        }
     }
 }

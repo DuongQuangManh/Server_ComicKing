@@ -25,11 +25,14 @@ module.exports = {
             limit
         }
 
-        const total = await User.count({})
-        const listUser = await User.find({
-            select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status', 'updatedAt'],
-            ...findOptions
-        })
+        const [total, listUser] =
+            await Promise.all([
+                User.count({}),
+                User.find({
+                    select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status', 'updatedAt'],
+                    ...findOptions
+                })
+            ])
 
         for (let user of listUser) {
             user.createdAt = moment(user.createdAt).format(constants.DATE_TIME_FORMAT)
