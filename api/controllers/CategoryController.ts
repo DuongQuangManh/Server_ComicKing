@@ -31,7 +31,7 @@ module.exports = {
         })
     }),
 
-    find: tryCatch(async (req, res) => {
+    adminFind: tryCatch(async (req, res) => {
         const { limit = 10, skip = 0 } = req.body
 
         const findOption = {

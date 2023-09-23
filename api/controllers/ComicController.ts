@@ -15,28 +15,12 @@ import { helper } from "../utils/helper";
 
 declare const Comic: any
 declare const ComicCategory: any
-declare const Category: any
+declare const Chapter: any
 declare const sails: any
 
 module.exports = {
 
-    get: tryCatch(async (req, res) => {
-        const { skip = 0, limit = 20 } = req.body
-
-        const findOption = { skip, limit }
-
-        const listComic = await Comic.find({
-            ...findOption
-        })
-
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: listComic
-        })
-    }),
-
-    find: tryCatch(async (req, res) => {
+    adminFind: tryCatch(async (req, res) => {
         const { skip = 0, limit = 20 } = req.body
 
         const findOption = { skip, limit }
@@ -174,7 +158,7 @@ module.exports = {
         })
     }),
 
-    detail: tryCatch(async (req, res) => {
+    adminDetail: tryCatch(async (req, res) => {
         const { id, requestType } = req.body
 
         let comic: any
@@ -195,10 +179,79 @@ module.exports = {
                 .populate('author')
                 .populate('categories')
         }
+        if (!comic)
+            throw new AppError(400, 'Comic không tồn tại', 400)
 
         comic.createdAt = helper.convertToStringDate(comic.createdAt)
         comic.updatedAt = helper.convertToStringDate(comic.updatedAt)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success',
+            data: comic
+        })
+    }),
+
+    clientFind: tryCatch(async (req, res) => {
+        const { skip = 0, limit = 20 } = req.body
+
+        const findOption = { skip, limit }
+
+        const listComic = await Comic.find({
+            ...findOption
+        })
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success',
+            data: listComic
+        })
+    }),
+
+    clientDetail: tryCatch(async (req, res) => {
+        const { id } = req.body
+        if (!id)
+            throw new AppError(400, 'ID không được bỏ trống.', 400)
+
+        const comicDetailPromise = Comic.findOne({
+            where: {
+                id,
+                status: { '!=': constants.COMMON_STATUS.ACTIVE }
+            }
+        }).populate('author')
+        const getComicChaptersPromise = Chapter.find({
+            where: {
+                comic: id,
+                status: constants.COMMON_STATUS.ACTIVE
+            },
+        })
+        const getComicCategoriesPromise = ComicCategory.find({ comic: id }).populate('category')
+
+        const [comic, chapters, categories] = await Promise.all([
+            comicDetailPromise,
+            getComicChaptersPromise,
+            getComicCategoriesPromise
+        ])
+        if (!comic)
+            throw new AppError(400, 'Comic không tồn tại vui lòng thử lại hoặc thử ID khác.', 400)
+
+        comic.categories = categories?.map((val: any) => ({
+            id: val?.category?.id,
+            title: val?.category?.title,
+        }))
+        comic.author = {
+            id: comic.author?.id,
+            name: comic.author?.name
+        }
+        comic.updatedAt = helper.convertToStringDate(comic.updatedAt, constants.DATE_FORMAT)
+        comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
+        comic.chapters = chapters?.map((chapter: any) => {
+            helper.deleteFields(chapter, 'createdAt', 'status', 'title')
+            chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt, constants.DATE_FORMAT)
+            return chapter
+        })
+        helper.deleteFields(comic, 'createdAt', 'uId', 'status')
 
         return res.status(200).json({
             err: 200,
@@ -253,7 +306,7 @@ module.exports = {
     getNewestComics: tryCatch(async (req, res) => {
         let limit = 6
 
-        const newestComics = await Comic.find({}).sort('createdAt desc').limit(limit)
+        const newestComics = await Comic.find({}).sort('updatedAt desc').limit(limit)
 
         return res.status(200).json({
             err: 200,

@@ -17,9 +17,13 @@ module.exports = {
 
         title: { type: 'string', required: true },
 
-        images: { type: 'json', columnType: 'array' },
+        images: { type: 'json', columnType: 'array', defaultsTo: [] },
 
         numOfView: { type: 'number', defaultsTo: 0 },
+
+        numOfComment: { type: 'number', defaultsTo: 0 },
+
+        numOfLike: { type: 'number', defaultsTo: 0 },
 
         comic: { model: 'comic' },
 

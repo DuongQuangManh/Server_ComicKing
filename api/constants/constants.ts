@@ -24,5 +24,5 @@ export const constants = {
     USER_AVATAR: 'user/avatar.png',
     AUTHOR_AVATAR: 'author/avatar.png',
     DATE_TIME_FORMAT: 'HH:mm  DD-MM-YYYY',
-    DATE_FORMAT: 'DD/MM/YYYY'
+    DATE_FORMAT: 'DD-MM-YYYY'
 }
