@@ -15,6 +15,7 @@ import { v4 as uuidV4 } from 'uuid'
 import { hashPassword } from "../services/AuthService";
 
 declare const User: any
+declare const Chapter: any
 
 module.exports = {
 
@@ -214,5 +215,38 @@ module.exports = {
             }
         })
     }),
+
+    toggleLikeChapter: tryCatch(async (req, res) => {
+        const { userId, chapterId, isLike } = req.body
+        if (!userId || !chapterId || typeof isLike != 'boolean')
+            throw new AppError(400, 'Bad request', 400)
+
+        const getUserPromise = User.findOne({
+            where: { id: userId },
+        })
+        const getChapterPromise = Chapter.findOne({
+            where: { id: chapterId }
+        })
+        const [user, chapter] = await Promise.all([getUserPromise, getChapterPromise])
+        if (!user)
+            throw new AppError(400, 'User không tồn tại', 400)
+        if (!chapter)
+            throw new AppError(400, 'Chapter không tồn tại', 400)
+
+        const chaptersSet = new Set(user.likeChapters)
+        if (chaptersSet.has(chapterId)) {
+            if (!isLike)
+                chaptersSet.delete(chapterId)
+        } else {
+            if (isLike)
+                chaptersSet.add(chapterId)
+        }
+        await User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success'
+        })
+    })
 };
 

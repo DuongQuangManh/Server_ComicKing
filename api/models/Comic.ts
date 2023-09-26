@@ -52,7 +52,9 @@ module.exports = {
 
     publishedAt: { type: 'number', defaultsTo: 0 },
 
-    numOfLike: { type: 'number', defaultsTo: 0 }
+    numOfLike: { type: 'number', defaultsTo: 0 },
+
+    updatedChapterAt: { type: 'number', defaultsTo: Date.now() }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

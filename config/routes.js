@@ -101,6 +101,7 @@ module.exports.routes = {
   // user
   'POST /api/user/getProfile': 'UserController.getProfile',
   'POST /api/user/updateProfile': 'UserController.updateProfile',
+  'POST /api/user/toggleLikeChapter': 'UserController.toggleLikeChapter',
 
   // category
   'POST /api/category/get': 'CategoryController.get',
@@ -111,6 +112,8 @@ module.exports.routes = {
   'POST /api/user/getNewestComics': 'ComicController.getNewestComics',
   'POST /api/user/getProposeComics': 'ComicController.getProposeComics',
   'POST /api/user/getSliderComics': 'ComicController.getSliderComics',
-  'POST /api/user/getDoneComics': 'ComicController.getDoneComics'
+  'POST /api/user/getDoneComics': 'ComicController.getDoneComics',
 
+  // chapter
+  'POSt /api/user/detailChapter': 'ChapterController.clientDetail'
 };

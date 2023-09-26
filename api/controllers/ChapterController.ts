@@ -13,6 +13,9 @@ import tryCatch from "../utils/tryCatch";
 
 declare const Chapter: any
 declare const Comic: any
+declare const sails: any
+declare const User: any
+import { ObjectId } from 'mongodb'
 
 module.exports = {
 
@@ -152,6 +155,46 @@ module.exports = {
     }),
 
     clientDetail: tryCatch(async (req, res) => {
+        const { chapterId, userId } = req.body
+        if (!chapterId || !userId)
+            throw new AppError(400, 'Bad request.', 400)
 
-    })
+        const getChapterPromise = Chapter.findOne({
+            where: { id: chapterId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
+            select: ['images', 'comic']
+        })
+        const getUserPromise = User.findOne({
+            where: {id: userId},
+            select: ['likeChapters']
+        })
+        const [chapter, user] = await Promise.all([getChapterPromise, getUserPromise])
+        if (!chapter)
+            throw new AppError(400, 'Chapter không tồn tại.', 400)
+        if(!user)
+            throw new AppError(400, 'User không tồn tại', 400)
+
+        const db = sails.getDatastore().manager
+        const incrementChapterViewPromise = db.collection('chapter')
+            .updateOne(
+                { _id: ObjectId(chapterId) },
+                { $inc: { numOfView: 1 } }
+            )
+        const incrementComicViewPromise = db.collection('comic')
+            .updateOne(
+                { _id: ObjectId(chapter.comic), },
+                { $inc: { numOfView: 1 } }
+            )
+        await Promise.all([incrementChapterViewPromise, incrementComicViewPromise])
+
+        if(user.likeChapters?.indexOf(chapterId) != -1){
+            chapter.isLike = true
+        }
+        
+        return res.status(200).json({
+            err: 200,
+            message: 'Success',
+            data: chapter
+        })
+    }),
+
 }

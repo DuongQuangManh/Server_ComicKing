@@ -225,6 +225,7 @@ module.exports = {
                 comic: id,
                 status: constants.COMMON_STATUS.ACTIVE
             },
+            select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike']
         })
         const getComicCategoriesPromise = ComicCategory.find({ comic: id }).populate('category')
 
@@ -247,7 +248,6 @@ module.exports = {
         comic.updatedAt = helper.convertToStringDate(comic.updatedAt, constants.DATE_FORMAT)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
         comic.chapters = chapters?.map((chapter: any) => {
-            helper.deleteFields(chapter, 'createdAt', 'status', 'title')
             chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt, constants.DATE_FORMAT)
             return chapter
         })

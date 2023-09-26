@@ -38,6 +38,8 @@ module.exports = {
 
     uId: { type: 'string', required: true },
 
+    likeChapters: { type: 'json', columnType: 'array', defaultsTo: [] }
+
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
