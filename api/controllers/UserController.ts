@@ -13,9 +13,13 @@ import { updateProfileValidation } from "../validations/user/user.validation";
 import { constants } from "../constants/constants";
 import { v4 as uuidV4 } from 'uuid'
 import { hashPassword } from "../services/AuthService";
+import { ObjectId } from 'mongodb'
 
 declare const User: any
 declare const Chapter: any
+declare const ReadingHistory: any
+declare const Comic: any
+declare const sails: any
 
 module.exports = {
 
@@ -234,19 +238,94 @@ module.exports = {
             throw new AppError(400, 'Chapter không tồn tại', 400)
 
         const chaptersSet = new Set(user.likeChapters)
+        let handleIncrementLikePromise = null
+        const db = sails.getDatastore().manager
         if (chaptersSet.has(chapterId)) {
-            if (!isLike)
+            if (!isLike) {
                 chaptersSet.delete(chapterId)
+                handleIncrementLikePromise = Promise.all([
+                    db.collection('chapter').updateOne(
+                        {_id: ObjectId(chapter.id)},
+                        { $inc: { numOfLike: -1 } }
+                    ),
+                    db.collection('comic').updateOne(
+                        {_id: ObjectId(chapter.comic)},
+                        { $inc: { numOfLike: -1 } }
+                    )
+                ])
+            }
         } else {
-            if (isLike)
+            if (isLike) {
                 chaptersSet.add(chapterId)
+                handleIncrementLikePromise = Promise.all([
+                    db.collection('chapter').updateOne(
+                        {_id: ObjectId(chapter.id)},
+                        { $inc: { numOfLike: 1 } }
+                    ),
+                    db.collection('comic').updateOne(
+                        {_id: ObjectId(chapter.comic)},
+                        { $inc: { numOfLike: 1 } }
+                    )
+                ])
+            }
         }
-        await User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
+
+        const updateUserPromise = User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
+
+        Promise.all([updateUserPromise, handleIncrementLikePromise])
 
         return res.status(200).json({
             err: 200,
             message: 'Success'
         })
+    }),
+
+    getHistoryReading: tryCatch(async (req, res) => {
+        const { id } = req.body
+        if (!id)
+            throw new AppError(400, 'Bad Request', 400)
+
+        const getUserPromise = User.findOne({
+            where: { id },
+            select: ['readingHistoryLimit']
+        })
+        const getReadingHistoryPromise = ReadingHistory.find({
+            where: { user: id }
+        }).populate('comic').sort('updatedAt desc')
+
+        const [user, readingHistory] = await Promise.all([getUserPromise, getReadingHistoryPromise])
+        if (!user)
+            throw new AppError(400, 'User không tồn tại', 400)
+
+        const listComic = readingHistory?.map((item: any) => ({
+            name: item.comic?.name,
+            specialChapter: item.chapter,
+            description: item.comic?.description,
+            isHot: item.comic?.isHot,
+            id: item.comic?.id
+        }))
+
+        return res.json({
+            err: 200,
+            message: 'Success',
+            data: listComic,
+        })
+    }),
+
+    getFollowComic: tryCatch(async (req, res) => {
+
+    }),
+
+    getFollowAuthor: tryCatch(async (req, res) => {
+
+    }),
+
+    toggleFollowComic: tryCatch(async (req, res) => {
+
+    }),
+
+    toggleFollowAuthor: tryCatch(async (req, res) => {
+
     })
 };
 
