@@ -101,6 +101,7 @@ module.exports.routes = {
   // user
   'POST /api/user/getProfile': 'UserController.getProfile',
   'POST /api/user/updateProfile': 'UserController.updateProfile',
+  'POST /api/user/getHistoryReading': 'UserController.getHistoryReading',
   'POST /api/user/toggleLikeChapter': 'UserController.toggleLikeChapter',
 
   // category

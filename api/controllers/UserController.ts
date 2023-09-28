@@ -13,9 +13,13 @@ import { updateProfileValidation } from "../validations/user/user.validation";
 import { constants } from "../constants/constants";
 import { v4 as uuidV4 } from 'uuid'
 import { hashPassword } from "../services/AuthService";
+import { ObjectId } from 'mongodb'
 
 declare const User: any
 declare const Chapter: any
+declare const ReadingHistory: any
+declare const Comic: any
+declare const sails: any
 
 module.exports = {
 
@@ -247,6 +251,54 @@ module.exports = {
             err: 200,
             message: 'Success'
         })
+    }),
+
+    getHistoryReading: tryCatch(async (req, res) => {
+        const { id } = req.body
+        if (!id)
+            throw new AppError(400, 'Bad Request', 400)
+
+        const getUserPromise = User.findOne({
+            where: { id },
+            select: ['readingHistoryLimit']
+        })
+        const getReadingHistoryPromise = ReadingHistory.find({
+            where: { user: id }
+        }).populate('comic').sort('updatedAt desc')
+
+        const [user, readingHistory] = await Promise.all([getUserPromise, getReadingHistoryPromise])
+        if (!user)
+            throw new AppError(400, 'User không tồn tại', 400)
+
+        const listComic = readingHistory?.map((item: any) => ({
+            name: item.comic?.name,
+            specialChapter: item.chapter,
+            description: item.comic?.description,
+            isHot: item.comic?.isHot,
+            id: item.comic?.id
+        }))
+
+        return res.json({
+            err: 200,
+            message: 'Success',
+            data: listComic,
+        })
+    }),
+
+    getFollowComic: tryCatch(async (req, res) => {
+
+    }),
+
+    getFollowAuthor: tryCatch(async (req, res) => {
+
+    }),
+
+    toggleFollowComic: tryCatch(async (req, res) => {
+
+    }),
+
+    toggleFollowAuthor: tryCatch(async (req, res) => {
+
     })
 };
 

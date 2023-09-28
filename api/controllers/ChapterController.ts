@@ -15,6 +15,7 @@ declare const Chapter: any
 declare const Comic: any
 declare const sails: any
 declare const User: any
+declare const ReadingHistory: any
 import { ObjectId } from 'mongodb'
 
 module.exports = {
@@ -164,14 +165,52 @@ module.exports = {
             select: ['images', 'comic']
         })
         const getUserPromise = User.findOne({
-            where: {id: userId},
-            select: ['likeChapters']
+            where: { id: userId },
+            select: ['likeChapters', 'readingHistoryLimit']
         })
-        const [chapter, user] = await Promise.all([getChapterPromise, getUserPromise])
+        const getReadingHistoryPromise = ReadingHistory.find({
+            where: { user: userId }
+        }).sort('updatedAt asc')
+        
+        const [chapter, user, readingHistory] =
+            await Promise.all([
+                getChapterPromise,
+                getUserPromise,
+                getReadingHistoryPromise])
         if (!chapter)
             throw new AppError(400, 'Chapter không tồn tại.', 400)
-        if(!user)
+        if (!user)
             throw new AppError(400, 'User không tồn tại', 400)
+
+        let isContain = false
+        let handleReadingHistoryPromise = null
+        // check comic contain in list history
+        for (let item of readingHistory) {
+            if (item.comic == chapter.comic) {
+                handleReadingHistoryPromise =
+                    ReadingHistory.updateOne({ id: item.id }).set({
+                        user: userId,
+                        comic: chapter.comic,
+                        chapter: chapter.id
+                    })
+                isContain = true
+                break
+            }
+        }
+        if (!isContain) {
+            if (readingHistory?.length >= user.readingHistoryLimit) { // remove one comicHistory if over length
+                handleReadingHistoryPromise = Promise.all([
+                    ReadingHistory.create({ user: userId, comic: chapter.comic, chapter: chapter.id }),
+                    ReadingHistory.destroyOne({ id: readingHistory[0]?.id })
+                ])
+            } else { // add one comicHistory
+                handleReadingHistoryPromise = ReadingHistory.create({
+                    user: userId,
+                    comic: chapter.comic,
+                    chapter: chapter.id
+                })
+            }
+        }
 
         const db = sails.getDatastore().manager
         const incrementChapterViewPromise = db.collection('chapter')
@@ -184,12 +223,12 @@ module.exports = {
                 { _id: ObjectId(chapter.comic), },
                 { $inc: { numOfView: 1 } }
             )
-        await Promise.all([incrementChapterViewPromise, incrementComicViewPromise])
+        await Promise.all([handleReadingHistoryPromise, incrementChapterViewPromise, incrementComicViewPromise])
 
-        if(user.likeChapters?.indexOf(chapterId) != -1){
+        if (user.likeChapters?.indexOf(chapterId) != -1) {
             chapter.isLike = true
         }
-        
+
         return res.status(200).json({
             err: 200,
             message: 'Success',

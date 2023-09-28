@@ -30,7 +30,7 @@ module.exports = {
                 Comic.count({}),
                 Comic.find({
                     ...findOption
-                }).populate('author')
+                }).populate('author').sort('createdAt desc')
             ])
 
         for (let comic of listComic) {

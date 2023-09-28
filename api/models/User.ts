@@ -38,7 +38,9 @@ module.exports = {
 
     uId: { type: 'string', required: true },
 
-    likeChapters: { type: 'json', columnType: 'array', defaultsTo: [] }
+    likeChapters: { type: 'json', columnType: 'array', defaultsTo: [] },
+
+    readingHistoryLimit: { type: 'number', defaultsTo: 8 },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
