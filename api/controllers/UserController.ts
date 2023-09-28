@@ -238,14 +238,41 @@ module.exports = {
             throw new AppError(400, 'Chapter không tồn tại', 400)
 
         const chaptersSet = new Set(user.likeChapters)
+        let handleIncrementLikePromise = null
+        const db = sails.getDatastore().manager
         if (chaptersSet.has(chapterId)) {
-            if (!isLike)
+            if (!isLike) {
                 chaptersSet.delete(chapterId)
+                handleIncrementLikePromise = Promise.all([
+                    db.collection('chapter').updateOne(
+                        {_id: ObjectId(chapter.id)},
+                        { $inc: { numOfLike: -1 } }
+                    ),
+                    db.collection('comic').updateOne(
+                        {_id: ObjectId(chapter.comic)},
+                        { $inc: { numOfLike: -1 } }
+                    )
+                ])
+            }
         } else {
-            if (isLike)
+            if (isLike) {
                 chaptersSet.add(chapterId)
+                handleIncrementLikePromise = Promise.all([
+                    db.collection('chapter').updateOne(
+                        {_id: ObjectId(chapter.id)},
+                        { $inc: { numOfLike: 1 } }
+                    ),
+                    db.collection('comic').updateOne(
+                        {_id: ObjectId(chapter.comic)},
+                        { $inc: { numOfLike: 1 } }
+                    )
+                ])
+            }
         }
-        await User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
+
+        const updateUserPromise = User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
+
+        Promise.all([updateUserPromise, handleIncrementLikePromise])
 
         return res.status(200).json({
             err: 200,
