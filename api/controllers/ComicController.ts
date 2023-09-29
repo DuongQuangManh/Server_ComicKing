@@ -226,7 +226,7 @@ module.exports = {
                 status: constants.COMMON_STATUS.ACTIVE
             },
             select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike']
-        })
+        }).sort('index asc')
         const getComicCategoriesPromise = ComicCategory.find({ comic: id }).populate('category')
 
         const [comic, chapters, categories] = await Promise.all([

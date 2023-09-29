@@ -77,13 +77,15 @@ module.exports = {
         if (images.length > 30)
             throw new AppError(400, 'Vui lòng giảm số lượng image (giới hạn 30/1chapter)', 400)
 
-        const checkComic = await Comic.findOne({ id: comic }).select(['uId'])
+        const checkComic = await Comic.findOne({ id: comic }).select(['uId', 'lastChapter'])
         if (!checkComic)
             throw new AppError(400, 'Truyện không tồn tại', 400)
 
+        const lastChapterIndex = checkComic.lastChapter?.index ?? 0
+        const lastChapterId = checkComic.lastChapter?.chapter ?? ''
         const pathImages = await mutipleUpload(
             images,
-            `${constants.IMAGE_FOLDER.CHAPTER}/${checkComic.uId}/chapter1`,
+            `${constants.IMAGE_FOLDER.CHAPTER}/${checkComic.uId}/${lastChapterIndex}`,
             'url'
         )
 
@@ -91,10 +93,27 @@ module.exports = {
             title,
             comic,
             images: pathImages,
-            status
+            status,
+            previousChapter: lastChapterId,
+            index: lastChapterIndex + 1
         }).fetch()
         if (!createdChapter)
             throw new AppError(400, 'Không thể thêm chapter vui lòng thử lại.', 400)
+
+        const updatedComicPromise = Comic.updateOne({ id: comic }).set({
+            lastChapter: { chapter: createdChapter.id, index: lastChapterIndex + 1 },
+            updatedChapterAt: Date.now()
+        })
+        let updatedChapterPromise = null
+        if (lastChapterId) {
+            updatedChapterPromise = Chapter.updateOne({ id: lastChapterId }).set({
+                nextChapter: createdChapter.id
+            })
+        }
+        await Promise.all([
+            updatedComicPromise,
+            updatedChapterPromise
+        ])
 
         return res.status(200).json({
             err: 200,
@@ -171,7 +190,7 @@ module.exports = {
         const getReadingHistoryPromise = ReadingHistory.find({
             where: { user: userId }
         }).sort('updatedAt asc')
-        
+
         const [chapter, user, readingHistory] =
             await Promise.all([
                 getChapterPromise,
