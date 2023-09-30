@@ -8,15 +8,14 @@
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
 import { mutipleUpload } from "../imagekit";
+import { handleIncNumPromise } from "../services";
 import { helper } from "../utils/helper";
 import tryCatch from "../utils/tryCatch";
 
 declare const Chapter: any
 declare const Comic: any
-declare const sails: any
 declare const User: any
 declare const ReadingHistory: any
-import { ObjectId } from 'mongodb'
 
 module.exports = {
 
@@ -102,7 +101,7 @@ module.exports = {
 
         const updatedComicPromise = Comic.updateOne({ id: comic }).set({
             lastChapter: { chapter: createdChapter.id, index: lastChapterIndex + 1 },
-            updatedChapterAt: Date.now()
+            updatedChapterAt: createdChapter.createdAt
         })
         let updatedChapterPromise = null
         if (lastChapterId) {
@@ -231,17 +230,8 @@ module.exports = {
             }
         }
 
-        const db = sails.getDatastore().manager
-        const incrementChapterViewPromise = db.collection('chapter')
-            .updateOne(
-                { _id: ObjectId(chapterId) },
-                { $inc: { numOfView: 1 } }
-            )
-        const incrementComicViewPromise = db.collection('comic')
-            .updateOne(
-                { _id: ObjectId(chapter.comic), },
-                { $inc: { numOfView: 1 } }
-            )
+        const incrementChapterViewPromise = handleIncNumPromise(chapterId, 'chapter', 1, 'numOfView')
+        const incrementComicViewPromise = handleIncNumPromise(chapter.comic, 'comic', 1, 'numOfView')
         await Promise.all([handleReadingHistoryPromise, incrementChapterViewPromise, incrementComicViewPromise])
 
         if (user.likeChapters?.indexOf(chapterId) != -1) {
