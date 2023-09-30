@@ -7,16 +7,17 @@
 
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
-import { mutipleUpload, uploadImage } from "../imagekit";
+import { uploadImage } from "../imagekit";
 import tryCatch from "../utils/tryCatch";
 import { v4 as uuidV4 } from 'uuid'
-import { ObjectId } from 'mongodb'
 import { helper } from "../utils/helper";
+import { handleIncNumPromise } from "../services";
 
 declare const Comic: any
 declare const ComicCategory: any
 declare const Chapter: any
-declare const sails: any
+declare const Author: any
+declare const Category: any
 
 module.exports = {
 
@@ -71,18 +72,9 @@ module.exports = {
         if (!createdComic)
             throw new AppError(400, 'Không thể khởi tạo Comic vui lòng thử lại.', 400)
 
-        const db = sails.getDatastore().manager
-        // const categoriesObjectId = categories.map(item => ObjectId(item))
         Promise.all([
             Comic.addToCollection(createdComic.id, 'categories', [...new Set(categories)]),
-            db.collection('author').updateOne(
-                { _id: ObjectId(author), },
-                { $inc: { numOfComic: 1 } }
-            ),
-            // db.collection('category').updateMany(
-            //     { _id: { $in: categoriesObjectId } },
-            //     { $inc: { numOfComic: 1 } }
-            // )
+            handleIncNumPromise(author, 'author', 1, 'numOfComic')
         ])
 
         return res.status(200).json({
@@ -133,16 +125,9 @@ module.exports = {
         const comicRemoveCategoriesPromise = Comic.removeFromCollection(updatedComic.id, 'categories', categoriesNeedRemove)
         const updateNumComicOfAuthorPromise = () => {
             if (updatedComic.author != checkComic.author) {
-                const db = sails.getDatastore().manager
                 return Promise.all([
-                    db.collection('author').updateOne(
-                        { _id: ObjectId(updatedComic.author), },
-                        { $inc: { numOfComic: 1 } }
-                    ),
-                    db.collection('author').updateOne(
-                        { _id: ObjectId(checkComic.author), },
-                        { $inc: { numOfComic: -1 } }
-                    ),
+                    handleIncNumPromise(updatedComic.author, 'author', 1, 'numOfComic'),
+                    handleIncNumPromise(checkComic.author, 'author', -1, 'numOfComic')
                 ])
             }
         }
@@ -162,22 +147,30 @@ module.exports = {
         const { id, requestType } = req.body
 
         let comic: any
+        const getComicPromise = Comic.findOne({ id })
+        const getListComicCategory = ComicCategory.find({
+            where: { comic: id },
+            select: ['category']
+        })
+        const [comicDetail, listComicCategory] = await Promise.all([getComicPromise, getListComicCategory])
         if (requestType == 'update') {
-            const comicDetailPromise = Comic.findOne({ id })
-            const comicCategoriesPromise = ComicCategory.find({
-                where: { comic: id },
-                select: ['category']
-            })
-            const [comicDetail, categories] = await Promise.all([comicDetailPromise, comicCategoriesPromise])
-
             comic = {
                 ...comicDetail,
-                categories: categories?.map((item: any) => item?.category)
+                categories: listComicCategory?.map((item: any) => item.category)
             }
         } else {
-            comic = await Comic.findOne({ id })
-                .populate('author')
-                .populate('categories')
+            const listCategoryId = listComicCategory?.map((item: any) => item.category)
+            const getAuthorPromise = Author.findOne({ id: comicDetail.author })
+            const getListCategoryPromise = Category.find({
+                where: { id: { 'in': listCategoryId } },
+                select: ['title']
+            })
+            const [author, listCategory] = await Promise.all([getAuthorPromise, getListCategoryPromise])
+            comic = {
+                ...comicDetail,
+                categories: listCategory,
+                author
+            }
         }
         if (!comic)
             throw new AppError(400, 'Comic không tồn tại', 400)
@@ -226,7 +219,7 @@ module.exports = {
                 status: constants.COMMON_STATUS.ACTIVE
             },
             select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike']
-        })
+        }).sort('index asc')
         const getComicCategoriesPromise = ComicCategory.find({ comic: id }).populate('category')
 
         const [comic, chapters, categories] = await Promise.all([

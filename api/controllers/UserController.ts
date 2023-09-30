@@ -13,13 +13,11 @@ import { updateProfileValidation } from "../validations/user/user.validation";
 import { constants } from "../constants/constants";
 import { v4 as uuidV4 } from 'uuid'
 import { hashPassword } from "../services/AuthService";
-import { ObjectId } from 'mongodb'
+import { handleIncNumPromise } from "../services";
 
 declare const User: any
 declare const Chapter: any
 declare const ReadingHistory: any
-declare const Comic: any
-declare const sails: any
 
 module.exports = {
 
@@ -239,37 +237,23 @@ module.exports = {
 
         const chaptersSet = new Set(user.likeChapters)
         let handleIncrementLikePromise = null
-        const db = sails.getDatastore().manager
         if (chaptersSet.has(chapterId)) {
             if (!isLike) {
                 chaptersSet.delete(chapterId)
                 handleIncrementLikePromise = Promise.all([
-                    db.collection('chapter').updateOne(
-                        {_id: ObjectId(chapter.id)},
-                        { $inc: { numOfLike: -1 } }
-                    ),
-                    db.collection('comic').updateOne(
-                        {_id: ObjectId(chapter.comic)},
-                        { $inc: { numOfLike: -1 } }
-                    )
+                    handleIncNumPromise(chapter.id, 'chapter', -1, 'numOfLike'),
+                    handleIncNumPromise(chapter.comic, 'comic', -1, 'numOfLike')
                 ])
             }
         } else {
             if (isLike) {
                 chaptersSet.add(chapterId)
                 handleIncrementLikePromise = Promise.all([
-                    db.collection('chapter').updateOne(
-                        {_id: ObjectId(chapter.id)},
-                        { $inc: { numOfLike: 1 } }
-                    ),
-                    db.collection('comic').updateOne(
-                        {_id: ObjectId(chapter.comic)},
-                        { $inc: { numOfLike: 1 } }
-                    )
+                    handleIncNumPromise(chapter.id, 'chapter', 1, 'numOfLike'),
+                    handleIncNumPromise(chapter.comic, 'comic', 1, 'numOfLike')
                 ])
             }
         }
-
         const updateUserPromise = User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
 
         Promise.all([updateUserPromise, handleIncrementLikePromise])

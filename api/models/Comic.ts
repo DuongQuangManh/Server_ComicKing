@@ -18,11 +18,7 @@ module.exports = {
 
     description: { type: 'string', required: true },
 
-    categories: {
-      collection: 'category',
-      via: 'comic',
-      through: 'comiccategory'
-    },
+    categories: { collection: 'category', via: 'comic', through: 'comiccategory' },
 
     author: { model: 'author' },
 
@@ -44,8 +40,6 @@ module.exports = {
 
     chapters: { collection: 'chapter', via: 'comic' },
 
-    specialList: { model: 'specialList' },
-
     star: { type: 'number', defaultsTo: 0 },
 
     numOfRate: { type: 'number', defaultsTo: 0 },
@@ -54,7 +48,9 @@ module.exports = {
 
     numOfLike: { type: 'number', defaultsTo: 0 },
 
-    updatedChapterAt: { type: 'number', defaultsTo: Date.now() }
+    updatedChapterAt: { type: 'number', defaultsTo: Date.now() },
+
+    lastChapter: { type: 'json', columnType: 'object', defaultsTo: { chapter: '', index: 0 } }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
