@@ -30,15 +30,18 @@ module.exports = {
             await Promise.all([
                 Comic.count({}),
                 Comic.find({
-                    ...findOption
-                }).populate('author').sort('createdAt desc')
+                    ...findOption,
+                    select: [
+                        'name', 'createdAt', 'publishedAt', 'updatedChapterAt', 'publishedAt',
+                        'numOfChapter', 'numOfFollow', 'numOfView', 'star', 'numOfLike', 'status',
+                    ]
+                }).sort('createdAt desc')
             ])
 
         for (let comic of listComic) {
             comic.createdAt = helper.convertToStringDate(comic.createdAt)
-            comic.updatedAt = helper.convertToStringDate(comic.updatedAt)
+            comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)
             comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
-            comic.author = comic.author?.name
         }
 
         return res.status(200).json({

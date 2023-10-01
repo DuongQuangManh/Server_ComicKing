@@ -76,7 +76,9 @@ module.exports.routes = {
   'POST /api/admin/detailChapter': 'ChapterController.adminDetail',
 
   // pending data
-  'POST /api/admin/getAdminPendingData': 'PendingController.getAdminPendingData',
+  'POST /api/admin/getComicPendingData': 'PendingController.getComicPendingData',
+  'POST /api/admin/getCategoriesPending': 'PendingController.getCategories',
+  'POST /api/admin/getAuthorsPending': 'PendingController.getAuthors',
 
 
   /**

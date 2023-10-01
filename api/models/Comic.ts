@@ -14,6 +14,7 @@ module.exports = {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
+
     name: { type: 'string', required: true },
 
     description: { type: 'string', required: true },
@@ -26,7 +27,7 @@ module.exports = {
 
     status: { type: 'string', defaultsTo: constants.COMIC_STATUS.IN_PROCESS },
 
-    numOfFavorite: { type: 'number', defaultsTo: 0 },
+    numOfFollow: { type: 'number', defaultsTo: 0 },
 
     image: { type: 'string', defaultsTo: '' },
 

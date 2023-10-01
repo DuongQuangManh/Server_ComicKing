@@ -28,14 +28,13 @@ module.exports = {
                 Chapter.count({}),
                 Chapter.find({
                     ...findOption
-                }).populate('comic')
+                }).sort('index desc')
             ])
 
         for (let chapter of listChapter) {
             chapter.createdAt = helper.convertToStringDate(chapter.createdAt)
             chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt)
-            chapter.comic = chapter.comic?.name
-            chapter.images = chapter.images?.length
+            chapter.images = chapter.images?.length ?? 0
         }
 
         return res.status(200).json({
@@ -70,11 +69,11 @@ module.exports = {
     }),
 
     add: tryCatch(async (req, res) => {
-        const { title, comic, images, status } = req.body
-        if (!title || !comic || !Array.isArray(images) || images.length == 0)
+        const { comic, images, status } = req.body
+        if (!comic || !Array.isArray(images) || images.length == 0)
             throw new AppError(400, 'Bad Request', 400)
         if (images.length > 30)
-            throw new AppError(400, 'Vui lòng giảm số lượng image (giới hạn 30/1chapter)', 400)
+            throw new AppError(400, 'Vui lòng giảm số lượng image (tối đa 30/1chapter)', 400)
 
         const checkComic = await Comic.findOne({ id: comic }).select(['uId', 'lastChapter'])
         if (!checkComic)
@@ -89,7 +88,6 @@ module.exports = {
         )
 
         const createdChapter = await Chapter.create({
-            title,
             comic,
             images: pathImages,
             status,
