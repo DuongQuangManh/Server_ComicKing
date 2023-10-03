@@ -12,7 +12,7 @@ declare const Author: any
 
 module.exports = {
 
-    getAdminPendingData: tryCatch(async (req, res) => {
+    getComicPendingData: tryCatch(async (req, res) => {
 
         const categories = await Category.find({
             select: ['title']
@@ -30,6 +30,30 @@ module.exports = {
             err: 200,
             message: 'Success',
             data: pendingData
+        })
+    }),
+
+    getCategories: tryCatch(async (req, res) => {
+        const categories = await Category.find({
+            select: ['title']
+        })
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success',
+            data: categories
+        })
+    }),
+
+    getAuthors: tryCatch(async (req, res) => {
+        const authors = await Author.find({
+            select: ['name'],
+        })
+
+        return res.status(200).json({
+            err: 200,
+            message: 'Success',
+            data: authors
         })
     })
 };

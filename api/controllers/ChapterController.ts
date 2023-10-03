@@ -28,14 +28,13 @@ module.exports = {
                 Chapter.count({}),
                 Chapter.find({
                     ...findOption
-                }).populate('comic')
+                }).sort('index desc')
             ])
 
         for (let chapter of listChapter) {
             chapter.createdAt = helper.convertToStringDate(chapter.createdAt)
             chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt)
-            chapter.comic = chapter.comic?.name
-            chapter.images = chapter.images?.length
+            chapter.images = chapter.images?.length ?? 0
         }
 
         return res.status(200).json({
@@ -70,18 +69,17 @@ module.exports = {
     }),
 
     add: tryCatch(async (req, res) => {
-        const { title, comic, images, status } = req.body
-        if (!title || !comic || !Array.isArray(images) || images.length == 0)
+        const { comic, images, status } = req.body
+        if (!comic || !Array.isArray(images) || images.length == 0)
             throw new AppError(400, 'Bad Request', 400)
         if (images.length > 30)
-            throw new AppError(400, 'Vui lòng giảm số lượng image (giới hạn 30/1chapter)', 400)
+            throw new AppError(400, 'Vui lòng giảm số lượng image (tối đa 30/1chapter)', 400)
 
-        const checkComic = await Comic.findOne({ id: comic }).select(['uId', 'lastChapter'])
+        const checkComic = await Comic.findOne({ id: comic }).select(['uId', 'lastChapterIndex'])
         if (!checkComic)
             throw new AppError(400, 'Truyện không tồn tại', 400)
 
-        const lastChapterIndex = checkComic.lastChapter?.index ?? 0
-        const lastChapterId = checkComic.lastChapter?.chapter ?? ''
+        const lastChapterIndex = checkComic.lastChapterIndex
         const pathImages = await mutipleUpload(
             images,
             `${constants.IMAGE_FOLDER.CHAPTER}/${checkComic.uId}/${lastChapterIndex}`,
@@ -89,29 +87,21 @@ module.exports = {
         )
 
         const createdChapter = await Chapter.create({
-            title,
             comic,
             images: pathImages,
             status,
-            previousChapter: lastChapterId,
             index: lastChapterIndex + 1
         }).fetch()
         if (!createdChapter)
             throw new AppError(400, 'Không thể thêm chapter vui lòng thử lại.', 400)
 
         const updatedComicPromise = Comic.updateOne({ id: comic }).set({
-            lastChapter: { chapter: createdChapter.id, index: lastChapterIndex + 1 },
-            updatedChapterAt: createdChapter.createdAt
+            lastChapterIndex: lastChapterIndex + 1,
+            updatedChapterAt: createdChapter.createdAt,
+            numOfChapter: checkComic.numOfChapter + 1
         })
-        let updatedChapterPromise = null
-        if (lastChapterId) {
-            updatedChapterPromise = Chapter.updateOne({ id: lastChapterId }).set({
-                nextChapter: createdChapter.id
-            })
-        }
-        await Promise.all([
+        Promise.all([
             updatedComicPromise,
-            updatedChapterPromise
         ])
 
         return res.status(200).json({
@@ -174,13 +164,17 @@ module.exports = {
     }),
 
     clientDetail: tryCatch(async (req, res) => {
-        const { chapterId, userId } = req.body
-        if (!chapterId || !userId)
+        const { comicId, userId, chapterIndex } = req.body
+        if (!comicId || !userId || !chapterIndex)
             throw new AppError(400, 'Bad request.', 400)
 
         const getChapterPromise = Chapter.findOne({
-            where: { id: chapterId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['images', 'comic']
+            where: {
+                comic: comicId,
+                index: chapterIndex,
+                status: { '!=': constants.COMMON_STATUS.IN_ACTIVE }
+            },
+            select: ['images']
         })
         const getUserPromise = User.findOne({
             where: { id: userId },
@@ -204,12 +198,10 @@ module.exports = {
         let handleReadingHistoryPromise = null
         // check comic contain in list history
         for (let item of readingHistory) {
-            if (item.comic == chapter.comic) {
+            if (item.comic == comicId) {
                 handleReadingHistoryPromise =
                     ReadingHistory.updateOne({ id: item.id }).set({
-                        user: userId,
-                        comic: chapter.comic,
-                        chapter: chapter.id
+                        chapterIndex
                     })
                 isContain = true
                 break
@@ -218,23 +210,29 @@ module.exports = {
         if (!isContain) {
             if (readingHistory?.length >= user.readingHistoryLimit) { // remove one comicHistory if over length
                 handleReadingHistoryPromise = Promise.all([
-                    ReadingHistory.create({ user: userId, comic: chapter.comic, chapter: chapter.id }),
+                    ReadingHistory.create({
+                        user: userId,
+                        comic: comicId,
+                        chapter: chapter.id,
+                        chapterIndex
+                    }),
                     ReadingHistory.destroyOne({ id: readingHistory[0]?.id })
                 ])
             } else { // add one comicHistory
                 handleReadingHistoryPromise = ReadingHistory.create({
                     user: userId,
-                    comic: chapter.comic,
-                    chapter: chapter.id
+                    comic: comicId,
+                    chapter: chapter.id,
+                    chapterIndex
                 })
             }
         }
 
-        const incrementChapterViewPromise = handleIncNumPromise(chapterId, 'chapter', 1, 'numOfView')
-        const incrementComicViewPromise = handleIncNumPromise(chapter.comic, 'comic', 1, 'numOfView')
-        await Promise.all([handleReadingHistoryPromise, incrementChapterViewPromise, incrementComicViewPromise])
+        const incrementChapterViewPromise = handleIncNumPromise(chapter.id, 'chapter', 1, 'numOfView')
+        const incrementComicViewPromise = handleIncNumPromise(comicId, 'comic', 1, 'numOfView')
+        Promise.all([handleReadingHistoryPromise, incrementChapterViewPromise, incrementComicViewPromise])
 
-        if (user.likeChapters?.indexOf(chapterId) != -1) {
+        if (user.likeChapters?.indexOf(chapter.id) != -1) {
             chapter.isLike = true
         }
 

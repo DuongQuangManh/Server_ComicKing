@@ -91,7 +91,7 @@ module.exports = {
                 author: id,
                 status: { '!=': constants.COMIC_STATUS.INACTIVE }
             },
-            select: ['name', 'numOfChapter', 'numOfFavorite', 'status', 'updatedAt', 'isHot']
+            select: ['name', 'numOfChapter', 'numOfFollow', 'status', 'updatedAt', 'isHot']
         })
 
         return res.json({

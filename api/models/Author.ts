@@ -19,6 +19,8 @@ module.exports = {
 
     description: { type: 'string', defaultsTo: 'Tác giả của ứng dụng.' },
 
+    numOfFollow: { type: 'number', defaultsTo: 0 },
+
     numOfComic: { type: 'number', defaultsTo: 0 },
 
     status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },

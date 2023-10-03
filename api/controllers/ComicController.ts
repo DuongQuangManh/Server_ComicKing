@@ -18,6 +18,7 @@ declare const ComicCategory: any
 declare const Chapter: any
 declare const Author: any
 declare const Category: any
+declare const ReadingHistory: any
 
 module.exports = {
 
@@ -30,15 +31,18 @@ module.exports = {
             await Promise.all([
                 Comic.count({}),
                 Comic.find({
-                    ...findOption
-                }).populate('author').sort('createdAt desc')
+                    ...findOption,
+                    select: [
+                        'name', 'createdAt', 'publishedAt', 'updatedChapterAt', 'publishedAt',
+                        'numOfChapter', 'numOfFollow', 'numOfView', 'star', 'numOfLike', 'status',
+                    ]
+                }).sort('createdAt desc')
             ])
 
         for (let comic of listComic) {
             comic.createdAt = helper.convertToStringDate(comic.createdAt)
-            comic.updatedAt = helper.convertToStringDate(comic.updatedAt)
+            comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)
             comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
-            comic.author = comic.author?.name
         }
 
         return res.status(200).json({
@@ -203,29 +207,31 @@ module.exports = {
     }),
 
     clientDetail: tryCatch(async (req, res) => {
-        const { id } = req.body
-        if (!id)
+        const { comicId, userId } = req.body
+        if (!comicId)
             throw new AppError(400, 'ID không được bỏ trống.', 400)
 
         const comicDetailPromise = Comic.findOne({
             where: {
-                id,
+                id: comicId,
                 status: { '!=': constants.COMMON_STATUS.ACTIVE }
             }
         }).populate('author')
         const getComicChaptersPromise = Chapter.find({
             where: {
-                comic: id,
+                comic: comicId,
                 status: constants.COMMON_STATUS.ACTIVE
             },
-            select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike']
+            select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike', 'index']
         }).sort('index asc')
-        const getComicCategoriesPromise = ComicCategory.find({ comic: id }).populate('category')
+        const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
+        const getReadingHistoryPromise = ReadingHistory.findOne({ user: userId, comic: comicId })
 
-        const [comic, chapters, categories] = await Promise.all([
+        const [comic, chapters, categories, readingHistory] = await Promise.all([
             comicDetailPromise,
             getComicChaptersPromise,
-            getComicCategoriesPromise
+            getComicCategoriesPromise,
+            getReadingHistoryPromise
         ])
         if (!comic)
             throw new AppError(400, 'Comic không tồn tại vui lòng thử lại hoặc thử ID khác.', 400)
@@ -238,13 +244,16 @@ module.exports = {
             id: comic.author?.id,
             name: comic.author?.name
         }
-        comic.updatedAt = helper.convertToStringDate(comic.updatedAt, constants.DATE_FORMAT)
+        comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
         comic.chapters = chapters?.map((chapter: any) => {
             chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt, constants.DATE_FORMAT)
             return chapter
         })
-        helper.deleteFields(comic, 'createdAt', 'uId', 'status')
+        if (!readingHistory) {
+            comic.readingChapter = readingHistory.chapterIndex
+        }
+        helper.deleteFields(comic, 'createdAt', 'uId', 'status', 'updatedAt')
 
         return res.status(200).json({
             err: 200,

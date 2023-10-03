@@ -283,9 +283,10 @@ module.exports = {
 
         const listComic = readingHistory?.map((item: any) => ({
             name: item.comic?.name,
-            specialChapter: item.chapter,
+            readingChapterIndex: item.chapterIndex,
             description: item.comic?.description,
             isHot: item.comic?.isHot,
+            image: item.comic?.image,
             id: item.comic?.id
         }))
 

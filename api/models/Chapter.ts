@@ -15,9 +15,7 @@ module.exports = {
         //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
         //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-        index: {type: 'number', required: true},
-
-        title: { type: 'string', required: true },
+        index: { type: 'number', required: true },
 
         images: { type: 'json', columnType: 'array', defaultsTo: [] },
 
@@ -30,10 +28,6 @@ module.exports = {
         comic: { model: 'comic' },
 
         status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
-
-        nextChapter: {type: 'string', defaultsTo: ''},
-
-        previousChapter: {type: 'string', defaultsTo: ''}
 
         //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
         //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
