@@ -29,10 +29,6 @@ module.exports = {
 
         status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
-        nextChapter: { type: 'string', defaultsTo: '' },
-
-        previousChapter: { type: 'string', defaultsTo: '' }
-
         //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
         //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
         //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝

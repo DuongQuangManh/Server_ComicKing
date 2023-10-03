@@ -17,7 +17,9 @@ module.exports = {
 
     comic: { model: 'comic', required: true },
 
-    chapter: { model: 'chapter', required: true }
+    chapter: { model: 'chapter', required: true },
+
+    chapterIndex: { type: 'number', required: true }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

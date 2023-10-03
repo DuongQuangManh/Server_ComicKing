@@ -51,7 +51,7 @@ module.exports = {
 
     updatedChapterAt: { type: 'number', defaultsTo: Date.now() },
 
-    lastChapter: { type: 'json', columnType: 'object', defaultsTo: { chapter: '', index: 0 } }
+    lastChapterIndex: { type: 'number', defaultsTo: 0 }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
