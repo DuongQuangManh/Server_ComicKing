@@ -235,6 +235,7 @@ module.exports = {
         if (user.likeChapters?.indexOf(chapter.id) != -1) {
             chapter.isLike = true
         }
+        chapter.chapterIndex = chapterIndex;
 
         return res.status(200).json({
             err: 200,
