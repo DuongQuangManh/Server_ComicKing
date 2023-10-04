@@ -250,7 +250,7 @@ module.exports = {
             chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt, constants.DATE_FORMAT)
             return chapter
         })
-        if (!readingHistory) {
+        if (readingHistory) {
             comic.readingChapter = readingHistory.chapterIndex
         }
         helper.deleteFields(comic, 'createdAt', 'uId', 'status', 'updatedAt')
