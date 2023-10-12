@@ -42,6 +42,10 @@ module.exports = {
 
     readingHistoryLimit: { type: 'number', defaultsTo: 8 },
 
+    comicFollowing: {type: 'json', columnType: 'array', defaultsTo: []},
+
+    authorFollowing: {type: 'json', columnType: 'array', defaultsTo: []}
+
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝

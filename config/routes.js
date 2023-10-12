@@ -105,6 +105,10 @@ module.exports.routes = {
   'POST /api/user/updateProfile': 'UserController.updateProfile',
   'POST /api/user/getHistoryReading': 'UserController.getHistoryReading',
   'POST /api/user/toggleLikeChapter': 'UserController.toggleLikeChapter',
+  'POST /api/user/getComicFollowing': 'UserController.getComicFollowing',
+  'POST /api/user/toggleFollowComic': 'UserController.toggleFollowComic',
+  'POST /api/user/getAuthorFollowing': 'UserController.getAuthorFollowing',
+  'POST /api/user/toggleFollowAuthor': 'UserController.toggleFollowAuthor',
 
   // category
   'POST /api/category/get': 'CategoryController.get',

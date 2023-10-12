@@ -78,6 +78,7 @@ module.exports = {
 
         Promise.all([
             Comic.addToCollection(createdComic.id, 'categories', [...new Set(categories)]),
+            Author.updateOne({ id: author }).set({ updatedComicAt: Date.now() }),
             handleIncNumPromise(author, 'author', 1, 'numOfComic')
         ])
 
@@ -225,12 +226,12 @@ module.exports = {
             select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike', 'index']
         }).sort('index asc')
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
-        const getReadingHistoryPromise = ReadingHistory.findOne({ 
+        const getReadingHistoryPromise = ReadingHistory.findOne({
             where: {
                 user: userId,
                 comic: comicId
             }
-         })
+        })
 
         const [comic, chapters, categories, readingHistory] = await Promise.all([
             comicDetailPromise,

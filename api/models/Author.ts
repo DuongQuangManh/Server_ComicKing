@@ -25,7 +25,9 @@ module.exports = {
 
     status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
-    image: { type: 'string', defaultsTo: 'https://ik.imagekit.io/c7aqey5nn/author/avatar.png' }
+    image: { type: 'string', defaultsTo: 'https://ik.imagekit.io/c7aqey5nn/author/avatar.png' },
+
+    updatedComicAt: { type: 'number', defaultsTo: 0 }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
