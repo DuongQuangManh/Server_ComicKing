@@ -8,7 +8,7 @@
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
 import { mutipleUpload } from "../imagekit";
-import { handleIncNumPromise } from "../services";
+import { deleteFasyField, handleIncNumPromise } from "../services";
 import { helper } from "../utils/helper";
 import tryCatch from "../utils/tryCatch";
 
@@ -20,14 +20,21 @@ declare const ReadingHistory: any
 module.exports = {
 
     find: tryCatch(async (req, res) => {
-        const { skip = 0, limit = 10 } = req.body
+        const { skip = 0, limit = 10, condition } = req.body
         const findOption = { skip, limit }
+
+        let whereCondition: any = {}
+        if (condition) {
+            whereCondition.comic = condition.comic
+        }
+        deleteFasyField(whereCondition)
 
         const [total, listChapter] =
             await Promise.all([
                 Chapter.count({}),
                 Chapter.find({
-                    ...findOption
+                    where: whereCondition,
+                    ...findOption,
                 }).sort('index desc')
             ])
 
@@ -75,7 +82,7 @@ module.exports = {
         if (images.length > 30)
             throw new AppError(400, 'Vui lòng giảm số lượng image (tối đa 30/1chapter)', 400)
 
-        const checkComic = await Comic.findOne({ id: comic }).select(['uId', 'lastChapterIndex'])
+        const checkComic = await Comic.findOne({ id: comic }).select(['uId', 'lastChapterIndex', 'numOfChapter'])
         if (!checkComic)
             throw new AppError(400, 'Truyện không tồn tại', 400)
 
@@ -174,7 +181,7 @@ module.exports = {
                 index: chapterIndex,
                 status: { '!=': constants.COMMON_STATUS.IN_ACTIVE }
             },
-            select: ['images']
+            select: ['images', 'index']
         })
         const getUserPromise = User.findOne({
             where: { id: userId },

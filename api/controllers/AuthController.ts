@@ -68,7 +68,7 @@ module.exports = {
                 REGISTER_VERIFY_OTP_MAIL_TEMPLATE
             )
 
-        await Otp.create({
+        Otp.create({
             email: newOtpVerify.email,
             code: newOtpVerify.code,
             expiredAt: newOtpVerify.expiredAt,
@@ -322,7 +322,7 @@ module.exports = {
             FORGOT_VERIFY_OTP_MAIL_TEMPLATE
         )
 
-        await Otp.create({
+        Otp.create({
             email: newOtpVerify.email,
             code: newOtpVerify.code,
             expiredAt: newOtpVerify.expiredAt,
@@ -391,7 +391,7 @@ module.exports = {
             .updateOne({ email: body.email })
             .set(otpObj)
 
-        await Otp.create({
+        Otp.create({
             email: newOtpVerify.email,
             code: newOtpVerify.code,
             expiredAt: newOtpVerify.expiredAt,
@@ -428,7 +428,7 @@ module.exports = {
             CHANGE_VERIFY_OTP_MAIL_TEMPLATE
         )
 
-        await Otp.create({
+        Otp.create({
             email: newOtpVerify.email,
             code: newOtpVerify.code,
             expiredAt: newOtpVerify.expiredAt,

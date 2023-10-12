@@ -9,3 +9,13 @@ export const handleIncNumPromise = (id: string, collection: string, incNum: numb
         { $inc: { [field]: incNum } }
     )
 }
+
+export const deleteFasyField = (object: any) => {
+    let keys = Object.keys(object)
+    for (let key of keys) {
+        if (!object[key]) {
+            delete object[key]
+        }
+    }
+    return object
+}

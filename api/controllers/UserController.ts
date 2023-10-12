@@ -18,6 +18,8 @@ import { handleIncNumPromise } from "../services";
 declare const User: any
 declare const Chapter: any
 declare const ReadingHistory: any
+declare const Comic: any
+declare const Author: any
 
 module.exports = {
 
@@ -32,9 +34,9 @@ module.exports = {
             await Promise.all([
                 User.count({}),
                 User.find({
-                    select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status', 'updatedAt'],
+                    select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status', 'updatedAt', 'level'],
                     ...findOptions
-                })
+                }).sort('createdAt desc')
             ])
 
         for (let user of listUser) {
@@ -54,10 +56,12 @@ module.exports = {
     }),
 
     add: tryCatch(async (req, res) => {
-        const { email, fullName, nickName, birthday, gender, status, level, image, password } = req.body
-
-        if (!fullName || !nickName || !birthday || !gender || !status || !level || !email || !password) {
+        const { email, fullName, nickName, birthday, gender, status, level, image, password, confirmPassword } = req.body
+        if (!fullName || !nickName || !birthday || !gender || !email || !password) {
             throw new AppError(400, 'Bad Request', 400)
+        }
+        if (password != confirmPassword) {
+            throw new AppError(400, 'Password not match', 400)
         }
 
         const checkUser = await User.findOne({
@@ -81,7 +85,7 @@ module.exports = {
             gender,
             status,
             level,
-            image: url ?? `${process.env}${constants.USER_AVATAR}`,
+            image: url ?? `${process.env.IMAGEKIT_URL}${constants.USER_AVATAR}`,
             uId,
             email,
             password: hashPassword(password)
@@ -137,6 +141,9 @@ module.exports = {
 
     detail: tryCatch(async (req, res) => {
         const { id } = req.body
+        if (!id) {
+            throw new AppError(400, 'Bad Request', 400)
+        }
 
         let user = await User.findOne({ id })
 
@@ -225,9 +232,11 @@ module.exports = {
 
         const getUserPromise = User.findOne({
             where: { id: userId },
+            select: ['likeChapters']
         })
         const getChapterPromise = Chapter.findOne({
-            where: { id: chapterId }
+            where: { id: chapterId },
+            select: ['comic']
         })
         const [user, chapter] = await Promise.all([getUserPromise, getChapterPromise])
         if (!user)
@@ -235,26 +244,24 @@ module.exports = {
         if (!chapter)
             throw new AppError(400, 'Chapter không tồn tại', 400)
 
-        const chaptersSet = new Set(user.likeChapters)
+        const chaptersSet = new Set(user.likeChapters ?? [])
         let handleIncrementLikePromise = null
-        if (chaptersSet.has(chapterId)) {
-            if (!isLike) {
-                chaptersSet.delete(chapterId)
-                handleIncrementLikePromise = Promise.all([
-                    handleIncNumPromise(chapter.id, 'chapter', -1, 'numOfLike'),
-                    handleIncNumPromise(chapter.comic, 'comic', -1, 'numOfLike')
-                ])
-            }
-        } else {
-            if (isLike) {
-                chaptersSet.add(chapterId)
-                handleIncrementLikePromise = Promise.all([
-                    handleIncNumPromise(chapter.id, 'chapter', 1, 'numOfLike'),
-                    handleIncNumPromise(chapter.comic, 'comic', 1, 'numOfLike')
-                ])
-            }
+        let updateUserPromise = null
+        if (chaptersSet.has(chapterId) && !isLike) {
+            chaptersSet.delete(chapterId)
+            handleIncrementLikePromise = Promise.all([
+                handleIncNumPromise(chapter.id, 'chapter', -1, 'numOfLike'),
+                handleIncNumPromise(chapter.comic, 'comic', -1, 'numOfLike')
+            ])
+            updateUserPromise = User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
+        } else if (!chaptersSet.has(chapterId) && isLike) {
+            chaptersSet.add(chapterId)
+            handleIncrementLikePromise = Promise.all([
+                handleIncNumPromise(chapter.id, 'chapter', 1, 'numOfLike'),
+                handleIncNumPromise(chapter.comic, 'comic', 1, 'numOfLike')
+            ])
+            updateUserPromise = User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
         }
-        const updateUserPromise = User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
 
         Promise.all([updateUserPromise, handleIncrementLikePromise])
 
@@ -297,20 +304,126 @@ module.exports = {
         })
     }),
 
-    getFollowComic: tryCatch(async (req, res) => {
+    getComicFollowing: tryCatch(async (req, res) => {
+        const { userId, skip = 0, limit = 15 } = req.body
+        if (!userId)
+            throw new AppError(400, 'Bad Request', 400)
 
+        const checkUser = await User.findOne({ id: userId })
+        if (!checkUser) throw new AppError(400, 'User not exists in system.', 400)
+
+        let comicFollowing = []
+        if (checkUser.comicFollowing) {
+            comicFollowing = await Comic.find({
+                where: {
+                    id: { in: checkUser.comicFollowing }
+                },
+                select: ['name', 'description', 'isHot', 'image'],
+                skip, limit
+            })
+        }
+
+        return res.status(200).json({
+            err: 200,
+            messsage: 'Success',
+            data: comicFollowing,
+            skip, limit
+        })
     }),
 
-    getFollowAuthor: tryCatch(async (req, res) => {
+    getAuthorFollowing: tryCatch(async (req, res) => {
+        const { userId, skip = 0, limit = 15 } = req.body
+        if (!userId)
+            throw new AppError(400, 'Bad Request', 400)
 
+        const checkUser = await User.findOne({ id: userId })
+        if (!checkUser) throw new AppError(400, 'User not exists in system.', 400)
+
+        let authorFollowing = []
+        if (checkUser.authorFollowing) {
+            authorFollowing = await Author.find({
+                where: {
+                    id: { in: checkUser.authorFollowing }
+                },
+                select: ['name', 'image'],
+                skip, limit
+            })
+        }
+
+        return res.status(200).json({
+            err: 200,
+            messsage: 'Success',
+            data: authorFollowing,
+            skip, limit
+        })
     }),
 
     toggleFollowComic: tryCatch(async (req, res) => {
+        const { userId, comicId, isFollow } = req.body
+        if (!userId || !comicId || typeof isFollow != 'boolean')
+            throw new AppError(400, 'Bad Request', 400)
 
+        const getUserPromise = User.findOne({
+            where: { id: userId },
+            select: ['comicFollowing']
+        })
+        const getComicPromise = Comic.findOne({
+            where: { id: comicId },
+            select: []
+        })
+        const [user, comic] = await Promise.all([getUserPromise, getComicPromise])
+        if (!user) throw new AppError(400, 'User not exists in system.', 400)
+        if (!comic) throw new AppError(400, 'Comic not exists in system', 400)
+
+        const followingSet = new Set(user.comicFollowing ?? [])
+        let incrementFollowPromise = null
+        let updateUserPromise = null
+        if (isFollow && !followingSet.has(comicId)) {
+            followingSet.add(comicId)
+            incrementFollowPromise = handleIncNumPromise(comicId, 'comic', 1, 'numOfFollow')
+            updateUserPromise = User.updateOne({ id: userId }).set({ comicFollowing: [...followingSet] })
+        } else if (!isFollow && followingSet.has(comicId)) {
+            followingSet.delete(comicId)
+            incrementFollowPromise = handleIncNumPromise(comicId, 'comic', -1, 'numOfFollow')
+            updateUserPromise = User.updateOne({ id: userId }).set({ comicFollowing: [...followingSet] })
+        }
+        Promise.all([updateUserPromise, incrementFollowPromise])
+
+        return res.status(200).json({ err: 200, message: 'Success' })
     }),
 
     toggleFollowAuthor: tryCatch(async (req, res) => {
+        const { userId, authorId, isFollow } = req.body
+        if (!userId || !authorId || typeof isFollow != 'boolean')
+            throw new AppError(400, 'Bad Request', 400)
 
+        const getUserPromise = User.findOne({
+            where: { id: userId },
+            select: ['authorFollowing']
+        })
+        const getAuthorPromise = Author.findOne({
+            where: { id: authorId },
+            select: []
+        })
+        const [user, author] = await Promise.all([getUserPromise, getAuthorPromise])
+        if (!user) throw new AppError(400, 'User not exists in system.', 400)
+        if (!author) throw new AppError(400, 'Author not exists in system', 400)
+
+        const followingSet = new Set(user.authorFollowing ?? [])
+        let incrementFollowPromise = null
+        let updateUserPromise = null
+        if (isFollow && !followingSet.has(authorId)) {
+            followingSet.add(authorId)
+            incrementFollowPromise = handleIncNumPromise(authorId, 'author', 1, 'numOfFollow')
+            updateUserPromise = User.updateOne({ id: userId }).set({ authorFollowing: [...followingSet] })
+        } else if (!isFollow && followingSet.has(authorId)) {
+            followingSet.delete(authorId)
+            incrementFollowPromise = handleIncNumPromise(authorId, 'author', -1, 'numOfFollow')
+            updateUserPromise = User.updateOne({ id: userId }).set({ authorFollowing: [...followingSet] })
+        }
+        Promise.all([updateUserPromise, incrementFollowPromise])
+
+        return res.status(200).json({ err: 200, message: 'Success' })
     })
 };
 

@@ -7,6 +7,7 @@
 
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
+import { helper } from "../utils/helper";
 import tryCatch from "../utils/tryCatch";
 
 declare const Author: any
@@ -98,6 +99,37 @@ module.exports = {
             err: 200,
             message: 'Success',
             data: comicsOfAuthor
+        })
+    }),
+
+    clientDetail: tryCatch(async (req, res) => {
+        const { authorId, skip = 0, limit = 15 } = req.body
+        if (typeof authorId != 'string')
+            throw new AppError(400, 'Bad Request', 400)
+
+        const getAuthorPromise = Author.find({
+            where: {
+                id: authorId,
+                select: ['name', 'image', 'description', 'numOfFollow', 'numOfComic', 'updatedComicAt']
+            }
+        })
+        const getListComicPromise = Comic.find({
+            where: {
+                author: authorId
+            },
+            select: ['name', 'description', 'isHot', 'image'],
+            skip, limit
+        })
+
+        const [author, listComic] = await Promise.all([getAuthorPromise, getListComicPromise])
+        author.updatedComicAt = helper.convertToStringDate(author.updatedComicAt, constants.DATE_FORMAT)
+        author.listComic = listComic
+
+        return res.json({
+            err: 200,
+            message: 'Success',
+            data: author,
+            skip, limit
         })
     })
 };
