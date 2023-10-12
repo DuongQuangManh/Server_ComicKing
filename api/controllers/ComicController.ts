@@ -208,8 +208,8 @@ module.exports = {
 
     clientDetail: tryCatch(async (req, res) => {
         const { comicId, userId } = req.body
-        if (!comicId)
-            throw new AppError(400, 'ID không được bỏ trống.', 400)
+        if (!comicId || !userId)
+            throw new AppError(400, 'Bad Request', 400)
 
         const comicDetailPromise = Comic.findOne({
             where: {
@@ -225,7 +225,12 @@ module.exports = {
             select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike', 'index']
         }).sort('index asc')
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
-        const getReadingHistoryPromise = ReadingHistory.findOne({ user: userId, comic: comicId })
+        const getReadingHistoryPromise = ReadingHistory.findOne({ 
+            where: {
+                user: userId,
+                comic: comicId
+            }
+         })
 
         const [comic, chapters, categories, readingHistory] = await Promise.all([
             comicDetailPromise,

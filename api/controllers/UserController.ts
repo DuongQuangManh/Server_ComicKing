@@ -32,9 +32,9 @@ module.exports = {
             await Promise.all([
                 User.count({}),
                 User.find({
-                    select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status', 'updatedAt'],
+                    select: ['email', 'fbId', 'fullName', 'nickName', 'createdAt', 'status', 'updatedAt', 'level'],
                     ...findOptions
-                })
+                }).sort('createdAt desc')
             ])
 
         for (let user of listUser) {
@@ -54,10 +54,12 @@ module.exports = {
     }),
 
     add: tryCatch(async (req, res) => {
-        const { email, fullName, nickName, birthday, gender, status, level, image, password } = req.body
-
-        if (!fullName || !nickName || !birthday || !gender || !status || !level || !email || !password) {
+        const { email, fullName, nickName, birthday, gender, status, level, image, password, confirmPassword } = req.body
+        if (!fullName || !nickName || !birthday || !gender || !email || !password) {
             throw new AppError(400, 'Bad Request', 400)
+        }
+        if (password != confirmPassword) {
+            throw new AppError(400, 'Password not match', 400)
         }
 
         const checkUser = await User.findOne({
@@ -81,7 +83,7 @@ module.exports = {
             gender,
             status,
             level,
-            image: url ?? `${process.env}${constants.USER_AVATAR}`,
+            image: url ?? `${process.env.IMAGEKIT_URL}${constants.USER_AVATAR}`,
             uId,
             email,
             password: hashPassword(password)
@@ -137,6 +139,9 @@ module.exports = {
 
     detail: tryCatch(async (req, res) => {
         const { id } = req.body
+        if (!id) {
+            throw new AppError(400, 'Bad Request', 400)
+        }
 
         let user = await User.findOne({ id })
 
