@@ -1,5 +1,5 @@
 /**
- * ReadingHistory.js
+ * InteractComic.ts
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -13,13 +13,15 @@ module.exports = {
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-    user: { model: 'user', required: true },
+    user: { model: 'user' },
 
-    comic: { model: 'comic', required: true },
+    comic: { model: 'comic' },
 
-    chapter: { model: 'chapter', required: true },
+    readedChapters: { type: 'json', columnType: 'array', defaultsTo: [] },
 
-    chapterIndex: { type: 'number', required: true }
+    readingChapter: { type: 'number', defaultsTo: 0 },
+
+    likeChapters: { type: 'json', columnType: 'array', defaultsTo: [] }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

@@ -58,10 +58,10 @@ module.exports.routes = {
   'POST /api/admin/editCategory': 'CategoryController.edit',
 
   // author
-  'POST /api/admin/findAuthor': 'AuthorController.find',
+  'POST /api/admin/findAuthor': 'AuthorController.adminFind',
   'POST /api/admin/editAuthor': 'AuthorController.edit',
   'POST /api/admin/addAuthor': 'AuthorController.add',
-  'POST /api/admin/detailAuthor': 'AuthorController.detail',
+  'POST /api/admin/detailAuthor': 'AuthorController.adminDetail',
 
   // comic
   'POST /api/admin/findComic': 'ComicController.adminFind',
@@ -122,5 +122,9 @@ module.exports.routes = {
   'POST /api/user/getDoneComics': 'ComicController.getDoneComics',
 
   // chapter
-  'POSt /api/user/detailChapter': 'ChapterController.clientDetail'
+  'POSt /api/user/detailChapter': 'ChapterController.clientDetail',
+
+  // author
+  'POST /api/user/findAuthor' : 'AuthorController.clientFind',
+  'POST /api/user/detailAuthor': 'AuthorController.clientDetail'
 };

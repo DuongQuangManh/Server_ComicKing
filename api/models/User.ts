@@ -34,13 +34,7 @@ module.exports = {
 
     level: { type: 'number', defaultsTo: 1 },
 
-    favorite: { type: 'json', columnType: 'array', defaultsTo: [] },
-
     uId: { type: 'string', required: true },
-
-    likeChapters: { type: 'json', columnType: 'array', defaultsTo: [] },
-
-    readingHistoryLimit: { type: 'number', defaultsTo: 8 },
 
     comicFollowing: {type: 'json', columnType: 'array', defaultsTo: []},
 

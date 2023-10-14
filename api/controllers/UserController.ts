@@ -17,9 +17,9 @@ import { handleIncNumPromise } from "../services";
 
 declare const User: any
 declare const Chapter: any
-declare const ReadingHistory: any
 declare const Comic: any
 declare const Author: any
+declare const InteractComic: any
 
 module.exports = {
 
@@ -226,66 +226,57 @@ module.exports = {
     }),
 
     toggleLikeChapter: tryCatch(async (req, res) => {
-        const { userId, chapterId, isLike } = req.body
-        if (!userId || !chapterId || typeof isLike != 'boolean')
+        const { userId, chapterIndex, isLike, comicId } = req.body
+        if (!userId || !chapterIndex || typeof isLike != 'boolean' || !comicId)
             throw new AppError(400, 'Bad request', 400)
 
-        const getUserPromise = User.findOne({
-            where: { id: userId },
-            select: ['likeChapters']
-        })
-        const getChapterPromise = Chapter.findOne({
-            where: { id: chapterId },
-            select: ['comic']
-        })
-        const [user, chapter] = await Promise.all([getUserPromise, getChapterPromise])
-        if (!user)
-            throw new AppError(400, 'User không tồn tại', 400)
-        if (!chapter)
-            throw new AppError(400, 'Chapter không tồn tại', 400)
+        const getUserPromise = User.findOne({ where: { id: userId }, select: [] })
+        const getChapterPromise = Chapter.findOne({ where: { index: chapterIndex, comic: comicId }, select: [] })
+        const getInteractComicPromise = InteractComic.findOne({ user: userId, comic: comicId })
 
-        const chaptersSet = new Set(user.likeChapters ?? [])
+        const [checkUser, checkChapter, interactComic] = await Promise.all([getUserPromise, getChapterPromise, getInteractComicPromise])
+        if (!checkUser) throw new AppError(400, 'User không tồn tại', 400)
+        if (!checkChapter) throw new AppError(400, 'Chapter không tồn tại', 400)
+        if (!interactComic) throw new AppError(400, 'Pls goto chapter detail first', 400)
+
+        const likeChaptersSet = new Set(interactComic.likeChapters ?? [])
         let handleIncrementLikePromise = null
-        let updateUserPromise = null
-        if (chaptersSet.has(chapterId) && !isLike) {
-            chaptersSet.delete(chapterId)
+        let updateInteractComicPromise = null
+        if (likeChaptersSet.has(checkChapter.id) && !isLike) {
+            likeChaptersSet.delete(checkChapter.id)
             handleIncrementLikePromise = Promise.all([
-                handleIncNumPromise(chapter.id, 'chapter', -1, 'numOfLike'),
-                handleIncNumPromise(chapter.comic, 'comic', -1, 'numOfLike')
+                handleIncNumPromise(checkChapter.id, 'chapter', -1, 'numOfLike'),
+                handleIncNumPromise(comicId, 'comic', -1, 'numOfLike')
             ])
-            updateUserPromise = User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
-        } else if (!chaptersSet.has(chapterId) && isLike) {
-            chaptersSet.add(chapterId)
+            updateInteractComicPromise =
+                InteractComic.updateOne({ id: interactComic.id }).set({ likeChapters: [...likeChaptersSet] })
+        } else if (!likeChaptersSet.has(checkChapter.id) && isLike) {
+            likeChaptersSet.add(checkChapter.id)
             handleIncrementLikePromise = Promise.all([
-                handleIncNumPromise(chapter.id, 'chapter', 1, 'numOfLike'),
-                handleIncNumPromise(chapter.comic, 'comic', 1, 'numOfLike')
+                handleIncNumPromise(checkChapter.id, 'chapter', 1, 'numOfLike'),
+                handleIncNumPromise(comicId, 'comic', 1, 'numOfLike')
             ])
-            updateUserPromise = User.updateOne({ id: userId }).set({ likeChapters: [...chaptersSet] })
+            updateInteractComicPromise =
+                InteractComic.updateOne({ id: interactComic.id }).set({ likeChapters: [...likeChaptersSet] })
         }
 
-        Promise.all([updateUserPromise, handleIncrementLikePromise])
+        Promise.all([updateInteractComicPromise, handleIncrementLikePromise])
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success'
-        })
+        return res.status(200).json({ err: 200, message: 'Success' })
     }),
 
     getHistoryReading: tryCatch(async (req, res) => {
-        const { id } = req.body
-        if (!id)
-            throw new AppError(400, 'Bad Request', 400)
+        const { userId, skip = 0, limit = 8 } = req.body
+        if (!userId) throw new AppError(400, 'Bad Request', 400)
 
-        const getUserPromise = User.findOne({
-            where: { id },
-            select: ['readingHistoryLimit']
-        })
-        const getReadingHistoryPromise = ReadingHistory.find({
-            where: { user: id }
+        const getUserPromise = User.findOne({ where: { id: userId }, select: [], })
+        const getReadingHistoryPromise = InteractComic.find({
+            where: { user: userId },
+            skip, limit
         }).populate('comic').sort('updatedAt desc')
 
-        const [user, readingHistory] = await Promise.all([getUserPromise, getReadingHistoryPromise])
-        if (!user)
+        const [checkUser, readingHistory] = await Promise.all([getUserPromise, getReadingHistoryPromise])
+        if (!checkUser)
             throw new AppError(400, 'User không tồn tại', 400)
 
         const listComic = readingHistory?.map((item: any) => ({
@@ -297,11 +288,7 @@ module.exports = {
             id: item.comic?.id
         }))
 
-        return res.json({
-            err: 200,
-            message: 'Success',
-            data: listComic,
-        })
+        return res.json({ err: 200, message: 'Success', data: listComic, skip, limit })
     }),
 
     getComicFollowing: tryCatch(async (req, res) => {

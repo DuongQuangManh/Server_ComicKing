@@ -18,7 +18,7 @@ declare const ComicCategory: any
 declare const Chapter: any
 declare const Author: any
 declare const Category: any
-declare const ReadingHistory: any
+declare const InteractComic: any
 
 module.exports = {
 
@@ -226,39 +226,31 @@ module.exports = {
             select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike', 'index']
         }).sort('index asc')
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
-        const getReadingHistoryPromise = ReadingHistory.findOne({
-            where: {
-                user: userId,
-                comic: comicId
-            }
-        })
+        const getInteractComicPromise = InteractComic.findOne({ user: userId, comic: comicId })
 
-        const [comic, chapters, categories, readingHistory] = await Promise.all([
-            comicDetailPromise,
-            getComicChaptersPromise,
-            getComicCategoriesPromise,
-            getReadingHistoryPromise
+        const [comic, chapters, categories, interactComic] = await Promise.all([
+            comicDetailPromise, getComicChaptersPromise,
+            getComicCategoriesPromise, getInteractComicPromise
         ])
         if (!comic)
             throw new AppError(400, 'Comic không tồn tại vui lòng thử lại hoặc thử ID khác.', 400)
+
+        let { readedChapters, readingChapter } = interactComic ?? {}
+        const readedChaptersSet = new Set(readedChapters ?? [])
+        comic.chapters = chapters?.map((chapter: any) => {
+            chapter.isRead = readedChaptersSet.has(chapter.id)
+            chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt, constants.DATE_FORMAT)
+            return chapter
+        })
 
         comic.categories = categories?.map((val: any) => ({
             id: val?.category?.id,
             title: val?.category?.title,
         }))
-        comic.author = {
-            id: comic.author?.id,
-            name: comic.author?.name
-        }
+        comic.author = { id: comic.author?.id, name: comic.author?.name }
+        comic.readingChapter = readingChapter ?? 0
         comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
-        comic.chapters = chapters?.map((chapter: any) => {
-            chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt, constants.DATE_FORMAT)
-            return chapter
-        })
-        if (readingHistory) {
-            comic.readingChapter = readingHistory.chapterIndex
-        }
         helper.deleteFields(comic, 'createdAt', 'uId', 'status', 'updatedAt')
 
         return res.status(200).json({
