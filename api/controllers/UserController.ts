@@ -158,16 +158,24 @@ module.exports = {
         })
     }),
 
-    getProfile: tryCatch(async (req, res) => {
+    getUserInfo: tryCatch(async (req, res) => {
         const { id } = req.body
-
-        if (!id)
-            throw new AppError(400, 'ID người dùng không được bỏ trống.', 400)
+        if (!id) throw new AppError(400, 'Bad Request', 400)
 
         const checkUser = await User.findOne({
-            where: {
-                id
-            },
+            where: { id },
+            select: ['email', 'nickName', 'image', 'birthday', 'gender', 'avatarFrame']
+        }).populate('avatarFrame')
+
+        return res.status(200).json({ err: 200, message: 'success', data: checkUser })
+    }),
+
+    getProfile: tryCatch(async (req, res) => {
+        const { id } = req.body
+        if (!id) throw new AppError(400, 'ID người dùng không được bỏ trống.', 400)
+
+        const checkUser = await User.findOne({
+            where: { id },
             select: ['email', 'nickName', 'image', 'birthday', 'gender']
         })
         if (!checkUser)
@@ -411,6 +419,10 @@ module.exports = {
         Promise.all([updateUserPromise, incrementFollowPromise])
 
         return res.status(200).json({ err: 200, message: 'Success' })
+    }),
+
+    changeDecorate: tryCatch(async (req, res) => {
+
     })
 };
 

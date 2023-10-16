@@ -80,9 +80,14 @@ module.exports.routes = {
   'POST /api/admin/getCategoriesPending': 'PendingController.getCategories',
   'POST /api/admin/getAuthorsPending': 'PendingController.getAuthors',
 
+  // decorate
+  'POST /api/admin/addDecorate': 'DecorateController.add',
+  'POST /api/admin/findDecorate': 'DecorateController.adminFind',
+  'POST /api/admin/editDecorate': 'DecorateController.edit',
+  'POST /api/admin/detailDecorate': 'DecorateController.adminDetail',
 
   /**
-    MOBIE 
+    CLIENT 
   **/
 
   // authen
@@ -109,6 +114,7 @@ module.exports.routes = {
   'POST /api/user/toggleFollowComic': 'UserController.toggleFollowComic',
   'POST /api/user/getAuthorFollowing': 'UserController.getAuthorFollowing',
   'POST /api/user/toggleFollowAuthor': 'UserController.toggleFollowAuthor',
+  'POST /api/user/getUserInfo': 'UserController.getUserInfo',
 
   // category
   'POST /api/category/get': 'CategoryController.get',
@@ -125,6 +131,9 @@ module.exports.routes = {
   'POSt /api/user/detailChapter': 'ChapterController.clientDetail',
 
   // author
-  'POST /api/user/findAuthor' : 'AuthorController.clientFind',
-  'POST /api/user/detailAuthor': 'AuthorController.clientDetail'
+  'POST /api/user/findAuthor': 'AuthorController.clientFind',
+  'POST /api/user/detailAuthor': 'AuthorController.clientDetail',
+
+  // decorate
+  'POST /api/user/findDecorate': 'DecorateController.clientFind',
 };
