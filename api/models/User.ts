@@ -36,9 +36,15 @@ module.exports = {
 
     uId: { type: 'string', required: true },
 
-    comicFollowing: {type: 'json', columnType: 'array', defaultsTo: []},
+    levelPoint: { type: 'number', defaultsTo: 0 },
 
-    authorFollowing: {type: 'json', columnType: 'array', defaultsTo: []}
+    vipPoint: { type: 'number', defaultsTo: 0 },
+
+    avatarFrame: { model: 'Decorate'},
+
+    comicFollowing: { type: 'json', columnType: 'array', defaultsTo: [] },
+
+    authorFollowing: { type: 'json', columnType: 'array', defaultsTo: [] }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

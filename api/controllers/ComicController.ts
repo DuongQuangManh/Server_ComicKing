@@ -247,7 +247,6 @@ module.exports = {
             id: val?.category?.id,
             title: val?.category?.title,
         }))
-        comic.author = { id: comic.author?.id, name: comic.author?.name }
         comic.readingChapter = readingChapter ?? 0
         comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
