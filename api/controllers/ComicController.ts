@@ -19,12 +19,12 @@ declare const Chapter: any
 declare const Author: any
 declare const Category: any
 declare const InteractComic: any
+declare const User: any
 
 module.exports = {
 
     adminFind: tryCatch(async (req, res) => {
         const { skip = 0, limit = 20 } = req.body
-
         const findOption = { skip, limit }
 
         const [total, listComic] =
@@ -45,13 +45,7 @@ module.exports = {
             comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
         }
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: listComic,
-            total,
-            ...findOption
-        })
+        return res.status(200).json({ err: 200, message: 'Success', data: listComic, total, ...findOption })
     }),
 
     add: tryCatch(async (req, res) => {
@@ -65,13 +59,8 @@ module.exports = {
         const { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${uId}/avatar`, 'avatar')
 
         const createdComic = await Comic.create({
-            name,
-            description,
-            author,
-            image: url,
-            uId,
+            name, description, author, image: url, uId, status,
             publishedAt: helper.convertToTimeStamp(publishedAt),
-            status,
         }).fetch()
         if (!createdComic)
             throw new AppError(400, 'Không thể khởi tạo Comic vui lòng thử lại.', 400)
@@ -82,10 +71,7 @@ module.exports = {
             handleIncNumPromise(author, 'author', 1, 'numOfComic')
         ])
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Thêm thành công',
-        })
+        return res.status(200).json({ err: 200, message: 'Thêm thành công', })
     }),
 
     edit: tryCatch(async (req, res) => {
@@ -102,23 +88,15 @@ module.exports = {
         if (image && checkComic.image != image) {
             var { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.COMIC}/${checkComic.uId}`, 'avatar')
         }
-
-        const updatedComic = await Comic.updateOne({ id }).set({
-            name,
-            description,
-            author,
+        const updateComicPromise = Comic.updateOne({ id }).set({
+            name, description, author, status, image: url ?? checkComic.image,
             publishedAt: helper.convertToTimeStamp(publishedAt),
-            status,
-            image: url ?? checkComic.image,
         })
+        const getBeforeCategory = ComicCategory.find({ where: { comic: id }, select: ['category'] })
+        const [updatedComic, beforeCategoryObj] = await Promise.all([updateComicPromise, getBeforeCategory])
         if (!updatedComic)
             throw new AppError(400, 'Không cập nhật Comic vui lòng thử lại.', 400)
 
-        // get comic categories before
-        const beforeCategoryObj = await ComicCategory.find({
-            where: { comic: id },
-            select: ['category']
-        })
         // advoid duplicate category id
         const beforeCategorySet = new Set(beforeCategoryObj.map((item: any) => item.category))
         const updateCategorySet = new Set(categories)
@@ -137,15 +115,10 @@ module.exports = {
             }
         }
         Promise.all([
-            comicAddCategoriesPromise,
-            comicRemoveCategoriesPromise,
-            updateNumComicOfAuthorPromise
+            comicAddCategoriesPromise, comicRemoveCategoriesPromise, updateNumComicOfAuthorPromise
         ])
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Cập nhật thành công',
-        })
+        return res.status(200).json({ err: 200, message: 'Cập nhật thành công', })
     }),
 
     adminDetail: tryCatch(async (req, res) => {
@@ -209,28 +182,26 @@ module.exports = {
 
     clientDetail: tryCatch(async (req, res) => {
         const { comicId, userId } = req.body
-        if (!comicId || !userId)
-            throw new AppError(400, 'Bad Request', 400)
+        if (!comicId) throw new AppError(400, 'Bad Request', 400)
 
         const comicDetailPromise = Comic.findOne({
-            where: {
-                id: comicId,
-                status: { '!=': constants.COMMON_STATUS.ACTIVE }
-            }
+            where: { id: comicId, status: { '!=': constants.COMMON_STATUS.ACTIVE } }
         }).populate('author')
         const getComicChaptersPromise = Chapter.find({
-            where: {
-                comic: comicId,
-                status: constants.COMMON_STATUS.ACTIVE
-            },
+            where: { comic: comicId, status: constants.COMMON_STATUS.ACTIVE },
             select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike', 'index']
         }).sort('index asc')
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
-        const getInteractComicPromise = InteractComic.findOne({ user: userId, comic: comicId })
+        let getInteractComicPromise = null
+        let getUserPromise = null
+        if (userId) {
+            getInteractComicPromise = InteractComic.findOne({ user: userId, comic: comicId })
+            getUserPromise = User.findOne({ where: { id: userId }, select: ['authorFollowing', 'comicFollowing'] })
+        }
 
-        const [comic, chapters, categories, interactComic] = await Promise.all([
-            comicDetailPromise, getComicChaptersPromise,
-            getComicCategoriesPromise, getInteractComicPromise
+        const [comic, chapters, categories, interactComic, checkUser] = await Promise.all([
+            comicDetailPromise, getComicChaptersPromise, getComicCategoriesPromise,
+            getInteractComicPromise, getUserPromise
         ])
         if (!comic)
             throw new AppError(400, 'Comic không tồn tại vui lòng thử lại hoặc thử ID khác.', 400)
@@ -242,21 +213,26 @@ module.exports = {
             chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt, constants.DATE_FORMAT)
             return chapter
         })
-
         comic.categories = categories?.map((val: any) => ({
             id: val?.category?.id,
             title: val?.category?.title,
         }))
+        // check following author + comic
+        if (checkUser && comic.author) {
+            if (checkUser.authorFollwing?.includes(comic.author.id)) {
+                comic.author.isFollwing = true
+            }
+            if (checkUser.comicFollowing?.includes(comic.id)) {
+                comic.isFollowing = true
+            }
+        }
+
         comic.readingChapter = readingChapter ?? 0
         comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
         helper.deleteFields(comic, 'createdAt', 'uId', 'status', 'updatedAt')
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: comic
-        })
+        return res.status(200).json({ err: 200, message: 'Success', data: comic })
     }),
 
     getHomeComics: tryCatch(async (req, res) => {

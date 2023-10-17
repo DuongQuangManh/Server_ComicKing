@@ -20,6 +20,7 @@ declare const Chapter: any
 declare const Comic: any
 declare const Author: any
 declare const InteractComic: any
+declare const Decorate: any
 
 module.exports = {
 
@@ -56,48 +57,38 @@ module.exports = {
     }),
 
     add: tryCatch(async (req, res) => {
-        const { email, fullName, nickName, birthday, gender, status, level, image, password, confirmPassword } = req.body
+        const {
+            email, fullName, nickName, birthday, gender,
+            status, level, image, password, confirmPassword
+        } = req.body
         if (!fullName || !nickName || !birthday || !gender || !email || !password) {
             throw new AppError(400, 'Bad Request', 400)
         }
-        if (password != confirmPassword) {
-            throw new AppError(400, 'Password not match', 400)
-        }
+        if (password != confirmPassword) throw new AppError(400, 'Password not match', 400)
 
-        const checkUser = await User.findOne({
-            or: [
-                { nickName },
-                { email }
-            ]
-        })
-        if (checkUser)
+        const checkUserPromise = User.findOne({ or: [{ nickName }, { email }] })
+        const getAvatarFramePromise = Decorate.find({ where: { needPoint: 0 }, limit: 1 })
+        const getAvatarTitlePromise = Decorate.find({ where: { needPoint: 0 }, limit: 1 })
+        const [checkUser, avatarFrame, avatarTitle] =
+            await Promise.all([checkUserPromise, getAvatarFramePromise, getAvatarTitlePromise])
+        if (checkUser) {
             throw new AppError(400, 'User đã tồn tại vui lòng nhập lại Email hoặc Nickname.', 400)
-
+        }
         const uId = uuidV4()
         if (image) {
             var { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.USER}/${uId}`, 'avatar')
         }
-
         const createdUser = await User.create({
-            fullName,
-            nickName,
-            birthday,
-            gender,
-            status,
-            level,
+            fullName, nickName, birthday, gender, status, level,
             image: url ?? `${process.env.IMAGEKIT_URL}${constants.USER_AVATAR}`,
-            uId,
-            email,
-            password: hashPassword(password)
+            uId, email, password: hashPassword(password),
+            avatarFrame: avatarFrame?.[0]?.id, avatarTitle: avatarTitle?.[0]?.id
         }).fetch()
         if (!createdUser) {
             throw new AppError(400, 'Không thể cập nhật user vui lòng thử lại', 400)
         }
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success'
-        })
+        return res.status(200).json({ err: 200, message: 'Success' })
     }),
 
     edit: tryCatch(async (req, res) => {
@@ -164,8 +155,27 @@ module.exports = {
 
         const checkUser = await User.findOne({
             where: { id },
-            select: ['email', 'nickName', 'image', 'birthday', 'gender', 'avatarFrame']
-        }).populate('avatarFrame')
+            select: [
+                'email', 'nickName', 'image', 'birthday', 'avatarTitle',
+                'gender', 'avatarFrame', 'vipPoint', 'levelPoint'
+            ]
+        })
+        const { avatarTitle, avatarFrame } = checkUser
+        let arrayId = []
+        if (avatarFrame) arrayId.push(avatarFrame)
+        if (avatarTitle) arrayId.push(avatarTitle)
+        if (arrayId.length > 0) {
+            const listDecorate = await Decorate.find({ where: { id: { in: arrayId } } })
+            if(listDecorate?.[0]?.id == avatarTitle){
+                checkUser.avatarTitle = listDecorate[0]
+                checkUser.avatarFrame = listDecorate[1]
+            }else if(listDecorate?.[0]?.id == avatarFrame){
+                checkUser.avatarFrame = listDecorate[0]
+                checkUser.avatarTitle = listDecorate[1]
+            }
+        }
+
+        console.log(checkUser)
 
         return res.status(200).json({ err: 200, message: 'success', data: checkUser })
     }),
@@ -421,8 +431,80 @@ module.exports = {
         return res.status(200).json({ err: 200, message: 'Success' })
     }),
 
-    changeDecorate: tryCatch(async (req, res) => {
+    changeAvatarFrame: tryCatch(async (req, res) => {
+        const { avatarFrameId, userId } = req.body
+        if (!avatarFrameId || !userId) throw new AppError(400, 'Bad Request', 400)
 
+        const getAvatarFramePromise = Decorate.findOne({
+            where: { id: avatarFrameId, tag: 'avatar' },
+            select: ['image', 'needPoint', 'description', 'action', 'title', 'type']
+        })
+        const getUserPromise = User.findOne({
+            where: { id: userId },
+            select: ['levelPoint', 'vipPoint']
+        })
+        const [avatarFrame, user] = await Promise.all([getAvatarFramePromise, getUserPromise])
+        if (!avatarFrame) throw new AppError(400, 'AvatarFrame not exists in system.', 400)
+        if (!user) throw new AppError(400, 'User not exists in system.', 400)
+
+        let avatarFrameRespone = null
+        if (avatarFrame.type == 'event') {
+            // do something for event Avatar Frame
+        } else if (avatarFrame.type == 'vip') {
+            if (user.vipPoint >= avatarFrame.needPoint) {
+                avatarFrameRespone = avatarFrame
+            }
+        } else { // type == level
+            if (user.levelPoint >= avatarFrame.needPoint) {
+                avatarFrameRespone = avatarFrame
+            }
+        }
+        if (!avatarFrameRespone)
+            throw new AppError(400, 'You cannot have permission to use this AvatarFrame. Pls increment poin.', 400)
+
+        const updatedUser = await User.updateOne({ id: userId }).set({ avatarFrame: avatarFrameRespone.id })
+        if (!updatedUser)
+            throw new AppError(400, 'Cannot update avatar frame. Pls try againt', 400)
+
+        return res.status(200).json({ err: 200, message: 'Success', data: avatarFrameRespone })
+    }),
+
+    changeAvatarTitle: tryCatch(async (req, res) => {
+        const { userId, avatarTitleId } = req.body
+        if (!avatarTitleId || !userId) throw new AppError(400, 'Bad Request', 400)
+
+        const getAvatarTitlePromise = Decorate.findOne({
+            where: { id: avatarTitleId, tag: 'title' },
+            select: ['image', 'needPoint', 'description', 'action', 'title']
+        })
+        const getUserPromise = User.findOne({
+            where: { id: userId },
+            select: ['levelPoint', 'vipPoint']
+        })
+        const [avatarTitle, user] = await Promise.all([getAvatarTitlePromise, getUserPromise])
+        if (!avatarTitle) throw new AppError(400, 'AvatarTitle not exists in system.', 400)
+        if (!user) throw new AppError(400, 'User not exists in system.', 400)
+
+        let avatarTitleRespone = null
+        if (avatarTitle.type == 'event') {
+            // do something for event Avatar Frame
+        } else if (avatarTitle.type == 'vip') {
+            if (user.vipPoint >= avatarTitle.needPoint) {
+                avatarTitleRespone = avatarTitle
+            }
+        } else { // type == level
+            if (user.levelPoint >= avatarTitle.needPoint) {
+                avatarTitleRespone = avatarTitle
+            }
+        }
+        if (!avatarTitleRespone)
+            throw new AppError(400, 'You cannot have permission to use this AvatarFrame. Pls increment poin.', 400)
+
+        const updatedUser = await User.updateOne({ id: userId }).set({ avatarFrame: avatarTitleRespone.id })
+        if (!updatedUser)
+            throw new AppError(400, 'Cannot update avatar frame. Pls try againt', 400)
+
+        return res.status(200).json({ err: 200, message: 'Success', data: avatarTitleRespone })
     })
 };
 

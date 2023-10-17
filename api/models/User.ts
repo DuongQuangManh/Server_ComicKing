@@ -42,6 +42,8 @@ module.exports = {
 
     avatarFrame: { model: 'Decorate'},
 
+    avatarTitle: { model: 'Decorate'},
+
     comicFollowing: { type: 'json', columnType: 'array', defaultsTo: [] },
 
     authorFollowing: { type: 'json', columnType: 'array', defaultsTo: [] }

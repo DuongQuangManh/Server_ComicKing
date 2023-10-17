@@ -39,6 +39,7 @@ import { v4 as uuidV4 } from 'uuid'
 declare var User: any
 declare var Otp: any
 declare var OtpVerification: any
+declare var Decorate: any
 
 module.exports = {
 
@@ -90,40 +91,37 @@ module.exports = {
         const oldOtpVerify = await getValidVerifyOtp(body.email, body.code, OTP_TYPES.REGISTER)
 
         // update otp vefify after check valid
-        const newOtpVerify =
-            await OtpVerification
+        const updateOtpVerifiPromise =
+            OtpVerification
                 .updateOne({ email: body.email })
-                .set({
-                    otpType: OTP_TYPES.REGISTER_SUCCESS,
-                    data: {}
-                })
-        if (!newOtpVerify)
-            throw new AppError(400, 'Lỗi cập nhật mã Otp vui lòng thử lại.', 400)
+                .set({ otpType: OTP_TYPES.REGISTER_SUCCESS, data: {} })
+        const getAvatarFramePromise = Decorate.find({ where: { needPoint: 0 }, limit: 1 })
+        const getAvatarTitlePromise = Decorate.find({ where: { needPoint: 0 }, limit: 1 })
+        const createUserPromise = User.create({ email: body.email, ...oldOtpVerify.data, uId: uuidV4() }).fetch()
+        const [avatarFrame, avatarTitle, createdUser] = await Promise.all([
+            getAvatarFramePromise,
+            getAvatarTitlePromise,
+            createUserPromise,
+            updateOtpVerifiPromise
+        ])
+        if (!createdUser) throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
 
-        const uId = uuidV4()
-        const newUser = await User.create({
-            email: body.email,
-            ...oldOtpVerify.data,
-            uId
-        }).fetch()
-        if (!newUser)
-            throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
+        const updateBody: any = {}
+        if (avatarFrame?.[0]) updateBody.avatarFrame = avatarFrame[0].id
+        if (avatarTitle?.[0]) updateBody.avatarTitle = avatarTitle[0].id
+        User.updateOne({ id: createdUser.id }).set(updateBody)
 
-        const accessToken = generateToken({
-            email: newUser.email,
-            nickName: newUser.nickName,
-            id: newUser.id
-        })
+        const accessToken = generateToken({ email: createdUser.email, nickName: createdUser.nickName, id: createdUser.id })
         return res.status(200).json({
             err: 200,
             message: 'Đăng kí thành công',
             data: {
-                email: newUser.email,
+                email: createdUser.email,
                 accessToken,
-                nickName: newUser.nickName,
-                id: newUser.id,
-                image: newUser.image,
-                fullName: newUser.fullName
+                nickName: createdUser.nickName,
+                id: createdUser.id,
+                image: createdUser.image,
+                fullName: createdUser.fullName
             }
         })
     }),
