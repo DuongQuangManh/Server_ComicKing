@@ -115,6 +115,8 @@ module.exports.routes = {
   'POST /api/user/getAuthorFollowing': 'UserController.getAuthorFollowing',
   'POST /api/user/toggleFollowAuthor': 'UserController.toggleFollowAuthor',
   'POST /api/user/getUserInfo': 'UserController.getUserInfo',
+  'POST /api/user/changeAvatarFrame': 'UserController.changeAvatarFrame',
+  'POST /api/user/changeAvatarTitle': 'UserController.changeAvatarTitle',
 
   // category
   'POST /api/category/get': 'CategoryController.get',

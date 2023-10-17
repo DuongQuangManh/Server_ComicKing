@@ -12,6 +12,7 @@ import tryCatch from "../utils/tryCatch";
 
 declare const Author: any
 declare const Comic: any
+declare const User: any
 
 module.exports = {
 
@@ -94,42 +95,56 @@ module.exports = {
     }),
 
     clientFind: tryCatch(async (req, res) => {
-        const { limit = 10, skip = 0 } = req.body
+        const { limit = 10, skip = 0, userId } = req.body
         const findOption = { limit, skip }
 
-        const authors = await Author.find({
+        const getListAuthorPromise = Author.find({
             select: ['name', 'numOfComic', 'image', 'numOfFollow'],
             ...findOption
         })
+        let checkUserPromise = null
+        if (userId)
+            checkUserPromise = User.findOne({ where: { id: userId }, select: ['authorFollowing'] })
+        const [listAuthor, checkUser] = await Promise.all([getListAuthorPromise, checkUserPromise])
+        if (checkUser?.authorFollowing) {
+            const listAuthorSet = new Set(checkUser.authorFollowing)
+            for (let author of listAuthor) {
+                if (listAuthorSet.has(author.id)) {
+                    author.isFollwing = true
+                }
+            }
+        }
 
         return res.status(200).json({
             err: 200,
             message: 'Success',
-            data: authors,
+            data: listAuthor,
             ...findOption
         })
     }),
 
     clientDetail: tryCatch(async (req, res) => {
-        const { id, skip = 0, limit = 15 } = req.body
-        if (typeof id != 'string')
-            throw new AppError(400, 'Bad Request', 400)
+        const { authorId, userId, skip = 0, limit = 15 } = req.body
+        if (!authorId) throw new AppError(400, 'Bad Request', 400)
 
         const getAuthorPromise = Author.findOne({
-            where: {
-                id: id,
-            },
+            where: { id: authorId, },
             select: ['name', 'image', 'description', 'numOfFollow', 'numOfComic', 'updatedComicAt']
         })
         const getListComicPromise = Comic.find({
-            where: {
-                author: id
-            },
+            where: { author: authorId },
             select: ['name', 'description', 'isHot', 'image'],
             skip, limit
         }).sort('createdAt desc')
+        const getUserPromise = User.findOne({ where: { id: userId }, select: ['authorFollowing'] })
 
-        const [author, listComic] = await Promise.all([getAuthorPromise, getListComicPromise])
+        const [author, listComic, checkUser] = await Promise.all([
+            getAuthorPromise, getListComicPromise, getUserPromise
+        ])
+        if (!author) throw new AppError(400, 'Author not exists in system.', 400)
+        if (checkUser?.authorFollowing?.includes(author.id)) {
+            author.isFollowing = true
+        }
         author.updatedComicAt = helper.convertToStringDate(author.updatedComicAt, constants.DATE_FORMAT)
         author.listComic = listComic
 

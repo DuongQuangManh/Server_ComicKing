@@ -145,29 +145,17 @@ module.exports = {
         }
         var pathImages: any
         if (!matchImgs) {
-            pathImages = await mutipleUpload(
-                images,
-                `${constants.IMAGE_FOLDER.CHAPTER}/${checkComic.uId}/chapter1`,
-                'url'
-            )
+            pathImages = await mutipleUpload(images, `${constants.IMAGE_FOLDER.CHAPTER}/${checkComic.uId}/chapter1`, 'url')
         }
 
-        const updatedChapter =
-            await Chapter
-                .updateOne({ id })
-                .set({
-                    title,
-                    comic,
-                    images: pathImages ?? checkChapter.images,
-                    status
-                })
+        const updatedChapter = await Chapter.updateOne({ id }).set({
+            title, comic, status,
+            images: pathImages ?? checkChapter.images,
+        })
         if (!updatedChapter)
             throw new AppError(400, 'Không thể cập nhật chapter vui lòng thử lại.', 400)
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success'
-        })
+        return res.status(200).json({ err: 200, message: 'Success' })
     }),
 
     clientDetail: tryCatch(async (req, res) => {
@@ -176,8 +164,7 @@ module.exports = {
 
         const getChapterPromise = Chapter.findOne({
             where: {
-                comic: comicId,
-                index: chapterIndex,
+                comic: comicId, index: chapterIndex,
                 status: { '!=': constants.COMMON_STATUS.IN_ACTIVE }
             },
             select: ['images', 'index']
@@ -205,8 +192,7 @@ module.exports = {
         } else {
             if (checkUser) {
                 updateinteractComicPromise = InteractComic.create({
-                    user: userId,
-                    comic: comicId,
+                    user: userId, comic: comicId,
                     readedChapters: [chapter.id],
                     readingChapter: chapterIndex
                 })
@@ -215,7 +201,11 @@ module.exports = {
         }
         const incrementChapterViewPromise = handleIncNumPromise(chapter.id, 'chapter', 1, 'numOfView')
         const incrementComicViewPromise = handleIncNumPromise(comicId, 'comic', 1, 'numOfView')
-        Promise.all([incrementChapterViewPromise, incrementComicViewPromise, updateinteractComicPromise])
+        const incrementLevelPointPromise = handleIncNumPromise(userId, 'user', 1, 'levelPoint')
+        Promise.all([
+            incrementChapterViewPromise, incrementComicViewPromise,
+            updateinteractComicPromise, incrementLevelPointPromise
+        ])
 
         return res.status(200).json({ err: 200, message: 'Success', data: chapter })
     }),
