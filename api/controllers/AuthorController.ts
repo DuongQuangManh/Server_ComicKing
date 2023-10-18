@@ -128,7 +128,7 @@ module.exports = {
         if (!authorId) throw new AppError(400, 'Bad Request', 400)
 
         const getAuthorPromise = Author.findOne({
-            where: { id: authorId, },
+            where: { id: authorId },
             select: ['name', 'image', 'description', 'numOfFollow', 'numOfComic', 'updatedComicAt']
         })
         const getListComicPromise = Comic.find({
@@ -136,7 +136,9 @@ module.exports = {
             select: ['name', 'description', 'isHot', 'image'],
             skip, limit
         }).sort('createdAt desc')
-        const getUserPromise = User.findOne({ where: { id: userId }, select: ['authorFollowing'] })
+        const getUserPromise = userId ? (
+            User.findOne({ where: { id: userId }, select: ['authorFollowing'] })
+        ) : null
 
         const [author, listComic, checkUser] = await Promise.all([
             getAuthorPromise, getListComicPromise, getUserPromise
@@ -149,10 +151,8 @@ module.exports = {
         author.listComic = listComic
 
         return res.json({
-            err: 200,
-            message: 'Success',
-            data: author,
-            skip, limit
+            err: 200, message: 'Success',
+            data: author, skip, limit
         })
     })
 };

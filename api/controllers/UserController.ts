@@ -500,7 +500,7 @@ module.exports = {
         if (!avatarTitleRespone)
             throw new AppError(400, 'You cannot have permission to use this AvatarFrame. Pls increment poin.', 400)
 
-        const updatedUser = await User.updateOne({ id: userId }).set({ avatarFrame: avatarTitleRespone.id })
+        const updatedUser = await User.updateOne({ id: userId }).set({ avatarTitle: avatarTitleRespone.id })
         if (!updatedUser)
             throw new AppError(400, 'Cannot update avatar frame. Pls try againt', 400)
 
