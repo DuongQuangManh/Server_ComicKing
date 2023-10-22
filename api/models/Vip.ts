@@ -13,13 +13,13 @@ module.exports = {
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
+    index: { type: 'number', required: true, unique: true },
+
     point: { type: 'number', required: true },
 
-    nextVipPoint: { type: 'number', required: true },
+    nextVipPoint: { type: 'number', defaultsTo: -1 },
 
-    preVipPoint: { type: 'number', required: true },
-
-    description: { type: 'number', required: true },
+    description: { type: 'string', required: true },
 
     listPrivilege: { type: 'json', columnType: 'array', defaultsTo: [] }
 

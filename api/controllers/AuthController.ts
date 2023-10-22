@@ -9,7 +9,6 @@ import { authAdmin } from "../../config/firebase/firebase";
 import {
     CHANGE_VERIFY_OTP_MAIL_TEMPLATE,
     FORGOT_VERIFY_OTP_MAIL_TEMPLATE,
-    LOGIN_VERIFY_OTP_MAIL_TEMPLATE,
     REGISTER_VERIFY_OTP_MAIL_TEMPLATE
 } from "../constants/EMAIL_TEMPLATES";
 import { OTP_TIME_EXPIRE, OTP_TYPES } from "../constants/OTP";
@@ -95,14 +94,12 @@ module.exports = {
             OtpVerification
                 .updateOne({ email: body.email })
                 .set({ otpType: OTP_TYPES.REGISTER_SUCCESS, data: {} })
-        const getAvatarFramePromise = Decorate.find({ where: { needPoint: 0 }, limit: 1 })
-        const getAvatarTitlePromise = Decorate.find({ where: { needPoint: 0 }, limit: 1 })
+        const getAvatarFramePromise = Decorate.find({ where: { needPoint: 0, tag: 'avatar' }, limit: 1 })
+        const getAvatarTitlePromise = Decorate.find({ where: { needPoint: 0, tag: 'title' }, limit: 1 })
         const createUserPromise = User.create({ email: body.email, ...oldOtpVerify.data, uId: uuidV4() }).fetch()
         const [avatarFrame, avatarTitle, createdUser] = await Promise.all([
-            getAvatarFramePromise,
-            getAvatarTitlePromise,
-            createUserPromise,
-            updateOtpVerifiPromise
+            getAvatarFramePromise, getAvatarTitlePromise,
+            createUserPromise, updateOtpVerifiPromise
         ])
         if (!createdUser) throw new AppError(400, 'Không thể khởi tạo người dùng vui lòng thử lại.', 400)
 
@@ -111,17 +108,16 @@ module.exports = {
         if (avatarTitle?.[0]) updateBody.avatarTitle = avatarTitle[0].id
         User.updateOne({ id: createdUser.id }).set(updateBody)
 
-        const accessToken = generateToken({ email: createdUser.email, nickName: createdUser.nickName, id: createdUser.id })
+        const accessToken = generateToken({
+            email: createdUser.email, nickName: createdUser.nickName, id: createdUser.id
+        })
         return res.status(200).json({
             err: 200,
             message: 'Đăng kí thành công',
             data: {
-                email: createdUser.email,
-                accessToken,
-                nickName: createdUser.nickName,
-                id: createdUser.id,
-                image: createdUser.image,
-                fullName: createdUser.fullName
+                email: createdUser.email, accessToken,
+                nickName: createdUser.nickName, id: createdUser.id,
+                image: createdUser.image, fullName: createdUser.fullName
             }
         })
     }),
@@ -230,13 +226,21 @@ module.exports = {
         if (!checkUser) {
             const nickName = generateUsername()
             const uId = uuidV4()
+            const getAvatarFramePromise = Decorate.find({ where: { needPoint: 0, tag: 'avatar' }, limit: 1 })
+            const getAvatarTitlePromise = Decorate.find({ where: { needPoint: 0, tag: 'title' }, limit: 1 })
+            const [avatarFrame, avatarTitle] = await Promise.all([
+                getAvatarFramePromise,
+                getAvatarTitlePromise,
+            ])
             checkUser = await User.create({
                 email: decodedToken.email?.toLowerCase(),
                 image: decodedToken.picture,
                 fullName: decodedToken.name,
-                nickName,
-                uId
+                nickName, uId,
+                avatarFrame: avatarFrame[0].id,
+                avatarTitle: avatarTitle[0].id
             }).fetch()
+
             if (!checkUser)
                 throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)
         }
@@ -268,12 +272,19 @@ module.exports = {
         if (!checkUser) {
             const nickName = generateUsername()
             const uId = uuidV4()
+            const getAvatarFramePromise = Decorate.find({ where: { needPoint: 0, tag: 'avatar' }, limit: 1 })
+            const getAvatarTitlePromise = Decorate.find({ where: { needPoint: 0, tag: 'title' }, limit: 1 })
+            const [avatarFrame, avatarTitle] = await Promise.all([
+                getAvatarFramePromise,
+                getAvatarTitlePromise,
+            ])
             checkUser = await User.create({
                 fbId: decodedToken.uid,
                 image: decodedToken.picture,
                 fullName: decodedToken.name,
-                nickName,
-                uId
+                nickName, uId,
+                avatarFrame: avatarFrame[0].id,
+                avatarTitle: avatarTitle[0].id
             }).fetch()
             if (!checkUser)
                 throw new AppError(400, 'Không thể khởi tạo tài khoản vui lòng thử lại.', 400)
@@ -313,9 +324,7 @@ module.exports = {
         const newOtpVerify = await otpVerificationhandler(
             body.email,
             OTP_TYPES.FORGOT_PIN,
-            {
-                password: hashPassword(body.password),
-            },
+            { password: hashPassword(body.password) },
             checkOtp,
             FORGOT_VERIFY_OTP_MAIL_TEMPLATE
         )

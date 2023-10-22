@@ -40,9 +40,11 @@ module.exports = {
 
     vipPoint: { type: 'number', defaultsTo: 0 },
 
-    avatarFrame: { model: 'Decorate'},
+    coin: { type: 'number', defaultsTo: 0 },
 
-    avatarTitle: { model: 'Decorate'},
+    avatarFrame: { model: 'Decorate' },
+
+    avatarTitle: { model: 'Decorate' },
 
     comicFollowing: { type: 'json', columnType: 'array', defaultsTo: [] },
 
