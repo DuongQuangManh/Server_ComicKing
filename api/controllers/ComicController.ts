@@ -68,7 +68,8 @@ module.exports = {
         Promise.all([
             Comic.addToCollection(createdComic.id, 'categories', [...new Set(categories)]),
             Author.updateOne({ id: author }).set({ updatedComicAt: Date.now() }),
-            handleIncNumPromise(author, 'author', 1, 'numOfComic')
+            handleIncNumPromise(author, 'author', 1, 'numOfComic'),
+            handleIncNumPromise(categories, 'category', 1, 'numOfComic')
         ])
 
         return res.status(200).json({ err: 200, message: 'Thêm thành công', })
@@ -93,30 +94,40 @@ module.exports = {
             publishedAt: helper.convertToTimeStamp(publishedAt),
         })
         const getBeforeCategory = ComicCategory.find({ where: { comic: id }, select: ['category'] })
-        const [updatedComic, beforeCategoryObj] = await Promise.all([updateComicPromise, getBeforeCategory])
+        const [beforeCategoryObj, updatedComic] = await Promise.all([getBeforeCategory, updateComicPromise])
         if (!updatedComic)
             throw new AppError(400, 'Không cập nhật Comic vui lòng thử lại.', 400)
 
-        // advoid duplicate category id
-        const beforeCategorySet = new Set(beforeCategoryObj.map((item: any) => item.category))
-        const updateCategorySet = new Set(categories)
-        // filter categories need remove or add
-        const categoriesNeedRemove = [...beforeCategorySet].filter((item) => !updateCategorySet.has(item))
-        const categoriesNeedAdd = [...updateCategorySet].filter((item) => !beforeCategorySet.has(item))
+        if (beforeCategoryObj) {
+            // advoid duplicate category id
+            const beforeCategorySet = new Set(beforeCategoryObj.map((item: any) => item.category) as string[])
+            const updateCategorySet = new Set(categories)
+            // filter categories need remove or add
+            const categoriesNeedRemove = [...beforeCategorySet].filter((item) => !updateCategorySet.has(item))
+            const categoriesNeedAdd = [...updateCategorySet].filter((item) => !beforeCategorySet.has(item))
 
-        const comicAddCategoriesPromise = Comic.addToCollection(updatedComic.id, 'categories', categoriesNeedAdd)
-        const comicRemoveCategoriesPromise = Comic.removeFromCollection(updatedComic.id, 'categories', categoriesNeedRemove)
-        const updateNumComicOfAuthorPromise = () => {
-            if (updatedComic.author != checkComic.author) {
-                return Promise.all([
-                    handleIncNumPromise(updatedComic.author, 'author', 1, 'numOfComic'),
-                    handleIncNumPromise(checkComic.author, 'author', -1, 'numOfComic')
-                ])
+            const handleAddCategoriesPromise = categoriesNeedAdd.length > 0 ? (Promise.all([
+                Comic.addToCollection(updatedComic.id, 'categories', categoriesNeedAdd),
+                handleIncNumPromise(categoriesNeedAdd, 'category', 1, 'numOfComic')
+            ])) : null
+            const handleRemoveCategoriesPromise = categoriesNeedRemove.length > 0 ? (Promise.all([
+                Comic.removeFromCollection(updatedComic.id, 'categories', categoriesNeedRemove),
+                handleIncNumPromise(categoriesNeedRemove, 'category', -1, 'numOfComic')
+            ])) : null
+            // const comicAddCategoriesPromise = Comic.addToCollection(updatedComic.id, 'categories', categoriesNeedAdd)
+            // const comicRemoveCategoriesPromise = Comic.removeFromCollection(updatedComic.id, 'categories', categoriesNeedRemove)
+            const updateNumComicOfAuthorPromise = () => {
+                if (updatedComic.author != checkComic.author) {
+                    return Promise.all([
+                        handleIncNumPromise(updatedComic.author, 'author', 1, 'numOfComic'),
+                        handleIncNumPromise(checkComic.author, 'author', -1, 'numOfComic')
+                    ])
+                }
             }
+            Promise.all([
+                handleAddCategoriesPromise, handleRemoveCategoriesPromise, updateNumComicOfAuthorPromise
+            ])
         }
-        Promise.all([
-            comicAddCategoriesPromise, comicRemoveCategoriesPromise, updateNumComicOfAuthorPromise
-        ])
 
         return res.status(200).json({ err: 200, message: 'Cập nhật thành công', })
     }),

@@ -1,9 +1,11 @@
 /**
- * InteractComic.ts
+ * Comment.ts
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
+
+import { constants } from "../constants/constants";
 
 module.exports = {
 
@@ -13,17 +15,31 @@ module.exports = {
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-    user: { model: 'user', required: true },
+    sender: { model: 'user' },
 
-    comic: { model: 'comic', required: true },
+    avatarFrame: { type: 'string' },
 
-    readedChapters: { type: 'json', columnType: 'array', defaultsTo: [] },
+    avatarTitle: { type: 'string' },
 
-    readingChapter: { type: 'number', defaultsTo: 0 },
+    level: { type: 'number' },
 
-    likeChapters: { type: 'json', columnType: 'array', defaultsTo: [] },
+    vip: { type: 'number' },
 
-    likeComments: { type: 'json', columnType: 'array', defaultsTo: [] }
+    chapter: { model: 'chapter', },
+
+    comment: { model: 'comment' },
+
+    comic: { model: 'comic' },
+
+    content: { type: 'string', required: true },
+
+    numOfLike: { type: 'number', defaultsTo: 0 },
+
+    numOfComment: { type: 'number', defaultsTo: 0 },
+
+    canContainComment: { type: 'boolean', defaultsTo: true },
+
+    status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

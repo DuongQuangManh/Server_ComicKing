@@ -32,11 +32,13 @@ module.exports = {
 
     status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
-    level: { type: 'number', defaultsTo: 1 },
-
     uId: { type: 'string', required: true },
 
+    level: { type: 'number', defaultsTo: 0 },
+
     levelPoint: { type: 'number', defaultsTo: 0 },
+
+    vip: { type: 'number', defaultsTo: 0 },
 
     vipPoint: { type: 'number', defaultsTo: 0 },
 
@@ -48,7 +50,9 @@ module.exports = {
 
     comicFollowing: { type: 'json', columnType: 'array', defaultsTo: [] },
 
-    authorFollowing: { type: 'json', columnType: 'array', defaultsTo: [] }
+    authorFollowing: { type: 'json', columnType: 'array', defaultsTo: [] },
+
+    likeMyComments: { type: 'json', columnType: 'array', defaultsTo: [] }
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
