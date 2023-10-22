@@ -86,6 +86,18 @@ module.exports.routes = {
   'POST /api/admin/editDecorate': 'DecorateController.edit',
   'POST /api/admin/detailDecorate': 'DecorateController.adminDetail',
 
+  //vip
+  'POST /api/admin/addVip': 'VipController.add',
+  'POST /api/admin/editVip': 'VipController.edit',
+  'POST /api/admin/detailVip': 'VipController.adminDetail',
+  'POST /api/admin/findVip': 'VipController.adminFind',
+
+  //level
+  'POST /api/admin/addLevel': 'LevelController.add',
+  'POST /api/admin/editLevel': 'LevelController.edit',
+  'POST /api/admin/detailLevel': 'LevelController.adminDetail',
+  'POST /api/admin/findLevel': 'LevelController.adminFind',
+
   /**
     CLIENT 
   **/
@@ -138,4 +150,10 @@ module.exports.routes = {
 
   // decorate
   'POST /api/user/findDecorate': 'DecorateController.clientFind',
+
+  // vip
+  'POST /api/user/findVip': 'VipController.clientFind',
+
+  // level
+  'POST /api/user/findLevel': 'LevelController.clientFind'
 };
