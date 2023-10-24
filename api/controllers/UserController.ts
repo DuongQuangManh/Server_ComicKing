@@ -648,9 +648,8 @@ module.exports = {
             select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
         }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
             .skip(skip).limit(limit)
-        const getTotalCommentPromise = Comment.count({ user: userId })
-        const [user, listComment = [], total] = await Promise.all([
-            getUserPromise, getListCommentedPromise, getTotalCommentPromise
+        const [user, listComment = []] = await Promise.all([
+            getUserPromise, getListCommentedPromise
         ])
         if (!user) throw new AppError(400, 'User not exists in system', 400)
 
@@ -663,7 +662,7 @@ module.exports = {
 
         return res.status(200).json({
             err: 200, message: 'Success', data: listComment,
-            skip, limit, total
+            skip, limit
         })
     })
 

@@ -20,6 +20,7 @@ declare const Author: any
 declare const Category: any
 declare const InteractComic: any
 declare const User: any
+declare const Comment: any
 
 module.exports = {
 
@@ -203,6 +204,10 @@ module.exports = {
             select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike', 'index']
         }).sort('index asc')
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
+        const getHotCommentsPromise = Comment.find({
+            where: { comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
+            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
+        }).sort([{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }]).limit(3)
         let getInteractComicPromise = null
         let getUserPromise = null
         if (userId) {
@@ -210,9 +215,12 @@ module.exports = {
             getUserPromise = User.findOne({ where: { id: userId }, select: ['authorFollowing', 'comicFollowing'] })
         }
 
-        const [comic, chapters, categories, interactComic, checkUser] = await Promise.all([
+        const [
+            comic, chapters, categories,
+            interactComic, checkUser, hotsComment
+        ] = await Promise.all([
             comicDetailPromise, getComicChaptersPromise, getComicCategoriesPromise,
-            getInteractComicPromise, getUserPromise
+            getInteractComicPromise, getUserPromise, getHotCommentsPromise
         ])
         if (!comic)
             throw new AppError(400, 'Comic không tồn tại vui lòng thử lại hoặc thử ID khác.', 400)
