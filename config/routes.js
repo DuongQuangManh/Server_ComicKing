@@ -98,6 +98,11 @@ module.exports.routes = {
   'POST /api/admin/detailLevel': 'LevelController.adminDetail',
   'POST /api/admin/findLevel': 'LevelController.adminFind',
 
+  // comment
+  'POST /api/admin/detailComment': 'LevelController.adminComment',
+  'POST /api/admin/findComment': 'LevelController.adminComment',
+  'POST /api/admin/editComment': 'LevelController.edit',
+
   /**
     CLIENT 
   **/
@@ -129,6 +134,11 @@ module.exports.routes = {
   'POST /api/user/getUserInfo': 'UserController.getUserInfo',
   'POST /api/user/changeAvatarFrame': 'UserController.changeAvatarFrame',
   'POST /api/user/changeAvatarTitle': 'UserController.changeAvatarTitle',
+  'POST /api/user/sendCommentInChapter': 'UserController.sendCommentInChapter',
+  'POST /api/user/sendCommentInComic': 'UserController.sendCommentInComic',
+  'POST /api/user/sendCommentInComment': 'UserController.sendCommentInComment',
+  'POST /api/user/toggleLikeComment': 'UserController.toggleLikeComment',
+  'POST /api/user/getListCommented': 'UserController.getListCommented',
 
   // category
   'POST /api/category/get': 'CategoryController.get',
@@ -155,5 +165,9 @@ module.exports.routes = {
   'POST /api/user/findVip': 'VipController.clientFind',
 
   // level
-  'POST /api/user/findLevel': 'LevelController.clientFind'
+  'POST /api/user/findLevel': 'LevelController.clientFind',
+
+  // comment
+  'POST /api/user/findComment': 'CommentController.clientFind',
+  'POST /api/user.detailComment': 'CommentController.clientDetail'
 };

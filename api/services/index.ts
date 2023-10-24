@@ -1,13 +1,20 @@
 import { ObjectId } from 'mongodb'
 declare const sails: any
 
-
-export const handleIncNumPromise = (id: string, collection: string, incNum: number, field: string) => {
+export const handleIncNumPromise = (listId: string | string[], collection: string, incNum: number, field: string) => {
     const db = sails.getDatastore().manager
-    return db.collection(collection).updateOne(
-        { _id: ObjectId(id) },
-        { $inc: { [field]: incNum } }
-    )
+    if (typeof (listId) == 'string') {
+        return db.collection(collection).updateOne(
+            { _id: ObjectId(listId) },
+            { $inc: { [field]: incNum } }
+        )
+    } else {
+        const listObjectId = listId.map((id: string) => ObjectId(id))
+        return db.collection(collection).updateMany(
+            { _id: { $in: listObjectId } },
+            { $inc: { [field]: incNum } }
+        )
+    }
 }
 
 export const deleteFasyField = (object: any) => {

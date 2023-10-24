@@ -64,7 +64,7 @@ module.exports = {
         if (!userId) throw new AppError(400, 'Bad Request', 400)
 
         const getUserPromise = User.findOne({ where: { id: userId }, select: ['levelPoint'] })
-        const getListLevelPromise = Level.find({})
+        const getListLevelPromise = Level.find({}).sort('index asc')
         const [user, listLevel] = await Promise.all([getUserPromise, getListLevelPromise])
         if (!user) throw new AppError(400, 'User not exists in system', 400)
         if (!listLevel) throw new AppError(400, 'Cannot get list Level. Pls try again.', 400)

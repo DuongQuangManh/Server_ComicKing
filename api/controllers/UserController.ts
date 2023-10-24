@@ -21,6 +21,7 @@ declare const Comic: any
 declare const Author: any
 declare const InteractComic: any
 declare const Decorate: any
+declare const Comment: any
 
 module.exports = {
 
@@ -97,10 +98,7 @@ module.exports = {
             throw new AppError(400, 'Bad Request', 400)
 
         if (await User.findOne({
-            where: {
-                nickName,
-                id: { '!=': id }
-            }
+            where: { nickName, id: { '!=': id } }
         })) throw new AppError(400, 'Nickname đã tồn tại vui lòng nhập lại.', 400)
 
         const checkUser = await User.findOne({ id })
@@ -112,12 +110,8 @@ module.exports = {
             var { url } = await uploadImage(image, `${constants.IMAGE_FOLDER.USER}/${checkUser.uId}`, 'avatar')
         }
         const updatedUser = await User.updateOne({ id }).set({
-            fullName,
-            nickName,
-            birthday,
-            gender,
-            status,
-            level,
+            fullName, nickName, birthday,
+            gender, status, level,
             image: url ?? checkUser.image
         })
         if (!updatedUser) {
@@ -166,16 +160,14 @@ module.exports = {
         if (avatarTitle) arrayId.push(avatarTitle)
         if (arrayId.length > 0) {
             const listDecorate = await Decorate.find({ where: { id: { in: arrayId } } })
-            if(listDecorate?.[0]?.id == avatarTitle){
+            if (listDecorate?.[0]?.id == avatarTitle) {
                 checkUser.avatarTitle = listDecorate[0]
                 checkUser.avatarFrame = listDecorate[1]
-            }else if(listDecorate?.[0]?.id == avatarFrame){
+            } else if (listDecorate?.[0]?.id == avatarFrame) {
                 checkUser.avatarFrame = listDecorate[0]
                 checkUser.avatarTitle = listDecorate[1]
             }
         }
-
-        console.log(checkUser)
 
         return res.status(200).json({ err: 200, message: 'success', data: checkUser })
     }),
@@ -218,14 +210,7 @@ module.exports = {
         const { url = `${process.env.IMAGEKIT_URL}` } = await uploadImage(image, `user/${id}`, 'avatar')
 
         const updatedUser =
-            await User.updateOne({ id })
-                .set({
-                    nickName,
-                    birthday,
-                    gender,
-                    image: url,
-                    fullName
-                })
+            await User.updateOne({ id }).set({ nickName, birthday, gender, image: url, fullName })
 
         if (!updatedUser)
             throw new AppError(400, 'Không thể cập nhập user vui lòng thử lại.', 400)
@@ -252,10 +237,15 @@ module.exports = {
         const getChapterPromise = Chapter.findOne({ where: { index: chapterIndex, comic: comicId }, select: [] })
         const getInteractComicPromise = InteractComic.findOne({ user: userId, comic: comicId })
 
-        const [checkUser, checkChapter, interactComic] = await Promise.all([getUserPromise, getChapterPromise, getInteractComicPromise])
+        let [checkUser, checkChapter, interactComic] = await Promise.all([
+            getUserPromise, getChapterPromise, getInteractComicPromise
+        ])
         if (!checkUser) throw new AppError(400, 'User không tồn tại', 400)
         if (!checkChapter) throw new AppError(400, 'Chapter không tồn tại', 400)
-        if (!interactComic) throw new AppError(400, 'Pls goto chapter detail first', 400)
+        if (!interactComic) {
+            interactComic = await InteractComic.create({ user: userId, comic: comicId }).fetch()
+            if (!interactComic) throw new AppError(400, 'Server is not responding. Please try again', 400)
+        }
 
         const likeChaptersSet = new Set(interactComic.likeChapters ?? [])
         let handleIncrementLikePromise = null
@@ -338,8 +328,7 @@ module.exports = {
 
     getAuthorFollowing: tryCatch(async (req, res) => {
         const { userId, skip = 0, limit = 15 } = req.body
-        if (!userId)
-            throw new AppError(400, 'Bad Request', 400)
+        if (!userId) throw new AppError(400, 'Bad Request', 400)
 
         const checkUser = await User.findOne({ id: userId })
         if (!checkUser) throw new AppError(400, 'User not exists in system.', 400)
@@ -347,20 +336,13 @@ module.exports = {
         let authorFollowing = []
         if (checkUser.authorFollowing) {
             authorFollowing = await Author.find({
-                where: {
-                    id: { in: checkUser.authorFollowing }
-                },
+                where: { id: { in: checkUser.authorFollowing } },
                 select: ['name', 'image'],
                 skip, limit
             })
         }
 
-        return res.status(200).json({
-            err: 200,
-            messsage: 'Success',
-            data: authorFollowing,
-            skip, limit
-        })
+        return res.status(200).json({ err: 200, messsage: 'Success', data: authorFollowing, skip, limit })
     }),
 
     toggleFollowComic: tryCatch(async (req, res) => {
@@ -505,6 +487,184 @@ module.exports = {
             throw new AppError(400, 'Cannot update avatar frame. Pls try againt', 400)
 
         return res.status(200).json({ err: 200, message: 'Success', data: avatarTitleRespone })
+    }),
+
+    // api/user/sendCommentInChapter
+    sendCommentInChapter: tryCatch(async (req, res) => {
+        const { senderId, content, chapterIndex, comicId } = req.body
+        if (typeof (senderId) != 'string' || typeof (content) != 'string' || typeof (chapterIndex) != 'number' || typeof (comicId) != 'string')
+            throw new AppError(400, 'Bad request', 400)
+
+        const getSenderPromise = User.findOne({
+            where: { id: senderId },
+            select: ['avatarFrame', 'avatarTitle', 'level', 'vip']
+        })
+        const getChapterPromise = Chapter.findOne({ where: { index: chapterIndex, comic: comicId }, select: ['comic'] })
+        const [sender, chapter] = await Promise.all([getSenderPromise, getChapterPromise])
+        if (!sender) throw new AppError(400, 'User is not exists in system', 400)
+        if (!chapter) throw new AppError(400, 'Chapter is not exists in system', 400)
+
+        const { id, avatarFrame, avatarTitle, level, vip } = sender
+        const createdComment = await Comment.create({
+            sender: id, content, avatarFrame,
+            avatarTitle, level, vip,
+            chapter: chapter.id, comic: chapter.comic
+        }).fetch()
+        if (!createdComment) throw new AppError(400, 'Cannot send comment. Please try again.', 400)
+
+        const incComicNumCommentPromise = handleIncNumPromise(chapter.comic, 'comic', 1, 'numOfComment')
+        const incChapterNumCommentPromise = handleIncNumPromise(chapter.id, 'chapter', 1, 'numOfComment')
+        Promise.all([incChapterNumCommentPromise, incComicNumCommentPromise])
+
+        return res.status(200).json({ err: 200, message: 'Success' })
+    }),
+
+    // api/user/sendCommentInComic
+    sendCommentInComic: tryCatch(async (req, res) => {
+        const { senderId, content, comicId } = req.body
+        if (typeof (senderId) != 'string' || typeof (content) != 'string' || typeof (comicId) != 'string')
+            throw new AppError(400, 'Bad request', 400)
+
+        const getSenderPromise = User.findOne({
+            where: { id: senderId },
+            select: ['avatarFrame', 'avatarTitle', 'level', 'vip']
+        })
+        const getComicPromise = Comic.findOne({ where: { id: comicId }, select: [] })
+        const [sender, comic] = await Promise.all([getSenderPromise, getComicPromise])
+        if (!sender) throw new AppError(400, 'User is not exists in system', 400)
+        if (!comic) throw new AppError(400, 'Comic is not exists in system', 400)
+
+        const { id, avatarFrame, avatarTitle, level, vip } = sender
+        const createdComment = await Comment.create({
+            sender: id, content, avatarFrame,
+            avatarTitle, level, vip, comic: comic.id
+        }).fetch()
+        if (!createdComment) throw new AppError(400, 'Cannot send comment. Please try again.', 400)
+
+        const incChapterNumCommentPromise = handleIncNumPromise(comic.id, 'comic', 1, 'numOfComment')
+        Promise.all([incChapterNumCommentPromise])
+
+        return res.status(200).json({ err: 200, message: 'Success' })
+    }),
+
+    // api/user/sendCommentInComment
+    sendCommentInComment: tryCatch(async (req, res) => {
+        const { senderId, content, commentId } = req.body
+        if (typeof (senderId) != 'string' || typeof (content) != 'string' || typeof (commentId) != 'string')
+            throw new AppError(400, 'Bad request', 400)
+
+        const getSenderPromise = User.findOne({
+            where: { id: senderId },
+            select: ['avatarFrame', 'avatarTitle', 'level', 'vip']
+        })
+        const getCommentPromise = Comment.findOne({ where: { id: commentId }, select: ['comic', 'chapter'] })
+        const [sender, comment] = await Promise.all([getSenderPromise, getCommentPromise])
+        if (!sender) throw new AppError(400, 'User is not exists in system', 400)
+        if (!comment) throw new AppError(400, 'Comment is not exists in system', 400)
+        if (!comment.canContainComment) throw new AppError(400, 'This comment cannot contain comment.', 400)
+
+        const { id, avatarFrame, avatarTitle, level, vip } = sender
+        const { comic, chapter } = comment
+        const createdComment = await Comment.create({
+            sender: id, content, avatarFrame,
+            avatarTitle, level, vip,
+            comic, chapter, comment: commentId,
+            canContainComment: false
+        }).fetch()
+        if (!createdComment) throw new AppError(400, 'Cannot send comment. Please try again.', 400)
+
+        const incComicNumCommentPromise = handleIncNumPromise(comic, 'comic', 1, 'numOfComment')
+        const incChapterNumCommentPromise = handleIncNumPromise(chapter, 'chapter', 1, 'numOfComment')
+        const incCommentNumCommentPromise = handleIncNumPromise(comment.id, 'comment', 1, 'numOfComment')
+        Promise.all([incChapterNumCommentPromise, incComicNumCommentPromise, incCommentNumCommentPromise])
+
+        return res.status(200).json({ err: 200, message: 'Success' })
+    }),
+
+    // api/user/toggleLikeComment
+    toggleLikeComment: tryCatch(async (req, res) => {
+        const { userId, commentId, comicId, isLike } = req.body
+        if (typeof (userId) != 'string' || typeof (commentId) != 'string' || typeof (comicId) != 'string' || isLike != 'boolean')
+            throw new AppError(400, 'Bad request', 400)
+
+        const getUserPromise = User.findOne({ where: { id: userId }, select: ['likeMyComments'] })
+        const getCommentPromise = Comment.findOne({ where: { id: commentId }, select: ['comic'] })
+        const getInteractComicPromise = InteractComic.findOne({ where: { comic: comicId, user: userId } })
+        let [user, comment, interactComic] = await Promise.all([getUserPromise, getCommentPromise, getInteractComicPromise])
+
+        if (!user) throw new AppError(400, 'User is not exists in system.', 400)
+        if (!comment) throw new AppError(400, 'Comment is not exists in system.', 400)
+        if (comment.sender == userId) {
+            // handle when toggle like self comment
+            const likeCommentsSet = new Set(user.likeMyComments ?? [])
+            let updateUserPromise = null
+            let handleIncCommentNumOfLike = null
+            if (likeCommentsSet.has(commentId) && !isLike) {
+                likeCommentsSet.delete(commentId)
+                updateUserPromise = User.updateOne({ id: user.id }).set({ likeComments: [...likeCommentsSet] })
+                handleIncCommentNumOfLike = handleIncNumPromise(commentId, 'comment', -1, 'numOfLike')
+            }
+            if (!likeCommentsSet.has(commentId) && isLike) {
+                likeCommentsSet.add(commentId)
+                updateUserPromise = User.updateOne({ id: user.id }).set({ likeComments: [...likeCommentsSet] })
+                handleIncCommentNumOfLike = handleIncNumPromise(commentId, 'comment', 1, 'numOfLike')
+            }
+            await Promise.all([handleIncCommentNumOfLike, updateUserPromise])
+        } else {
+            if (!interactComic) {
+                interactComic = await InteractComic.create({ user: userId, comic: comicId }).fetch()
+                if (!interactComic) throw new AppError(400, 'Server is not responding. Please try again', 400)
+            }
+
+            const likeCommentsSet = new Set(interactComic.likeComments ?? [])
+            let updateInteractComicPromise = null
+            let handleIncCommentNumOfLike = null
+            if (likeCommentsSet.has(commentId) && !isLike) {
+                likeCommentsSet.delete(commentId)
+                updateInteractComicPromise = InteractComic.updateOne({ id: interactComic.id })
+                    .set({ likeComments: [...likeCommentsSet] })
+                handleIncCommentNumOfLike = handleIncNumPromise(commentId, 'comment', -1, 'numOfLike')
+            }
+            if (!likeCommentsSet.has(commentId) && isLike) {
+                likeCommentsSet.add(commentId)
+                updateInteractComicPromise = InteractComic.updateOne({ id: interactComic.id })
+                    .set({ likeComments: [...likeCommentsSet] })
+                handleIncCommentNumOfLike = handleIncNumPromise(commentId, 'comment', 1, 'numOfLike')
+            }
+            await Promise.all([updateInteractComicPromise, handleIncCommentNumOfLike])
+        }
+
+        return res.status(200).json({ err: 200, message: 'Success' })
+    }),
+
+    // api/user/getListCommented
+    getListCommented: tryCatch(async (req, res) => {
+        const { userId, skip = 0, limit = 15, sort = 'hot' } = req.body
+        if (typeof (userId) != 'string') throw new AppError(400, 'Bad request', 400)
+
+        const getUserPromise = User.findOne({ where: { id: userId }, select: ['likeMyComments'] })
+        const getListCommentedPromise = Comment.find({
+            where: { sender: userId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
+            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
+        }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
+            .skip(skip).limit(limit)
+        const [user, listComment = []] = await Promise.all([
+            getUserPromise, getListCommentedPromise
+        ])
+        if (!user) throw new AppError(400, 'User not exists in system', 400)
+
+        const likeCommentsSet = new Set(user.likeMyComments ?? [])
+        for (let comment of listComment) {
+            if (likeCommentsSet.has(comment.id)) {
+                comment.isLike = true
+            }
+        }
+
+        return res.status(200).json({
+            err: 200, message: 'Success', data: listComment,
+            skip, limit
+        })
     })
+
 };
 

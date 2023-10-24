@@ -20,6 +20,7 @@ declare const Author: any
 declare const Category: any
 declare const InteractComic: any
 declare const User: any
+declare const Comment: any
 
 module.exports = {
 
@@ -68,7 +69,8 @@ module.exports = {
         Promise.all([
             Comic.addToCollection(createdComic.id, 'categories', [...new Set(categories)]),
             Author.updateOne({ id: author }).set({ updatedComicAt: Date.now() }),
-            handleIncNumPromise(author, 'author', 1, 'numOfComic')
+            handleIncNumPromise(author, 'author', 1, 'numOfComic'),
+            handleIncNumPromise(categories, 'category', 1, 'numOfComic')
         ])
 
         return res.status(200).json({ err: 200, message: 'Thêm thành công', })
@@ -93,30 +95,40 @@ module.exports = {
             publishedAt: helper.convertToTimeStamp(publishedAt),
         })
         const getBeforeCategory = ComicCategory.find({ where: { comic: id }, select: ['category'] })
-        const [updatedComic, beforeCategoryObj] = await Promise.all([updateComicPromise, getBeforeCategory])
+        const [beforeCategoryObj, updatedComic] = await Promise.all([getBeforeCategory, updateComicPromise])
         if (!updatedComic)
             throw new AppError(400, 'Không cập nhật Comic vui lòng thử lại.', 400)
 
-        // advoid duplicate category id
-        const beforeCategorySet = new Set(beforeCategoryObj.map((item: any) => item.category))
-        const updateCategorySet = new Set(categories)
-        // filter categories need remove or add
-        const categoriesNeedRemove = [...beforeCategorySet].filter((item) => !updateCategorySet.has(item))
-        const categoriesNeedAdd = [...updateCategorySet].filter((item) => !beforeCategorySet.has(item))
+        if (beforeCategoryObj) {
+            // advoid duplicate category id
+            const beforeCategorySet = new Set(beforeCategoryObj.map((item: any) => item.category) as string[])
+            const updateCategorySet = new Set(categories)
+            // filter categories need remove or add
+            const categoriesNeedRemove = [...beforeCategorySet].filter((item) => !updateCategorySet.has(item))
+            const categoriesNeedAdd = [...updateCategorySet].filter((item) => !beforeCategorySet.has(item))
 
-        const comicAddCategoriesPromise = Comic.addToCollection(updatedComic.id, 'categories', categoriesNeedAdd)
-        const comicRemoveCategoriesPromise = Comic.removeFromCollection(updatedComic.id, 'categories', categoriesNeedRemove)
-        const updateNumComicOfAuthorPromise = () => {
-            if (updatedComic.author != checkComic.author) {
-                return Promise.all([
-                    handleIncNumPromise(updatedComic.author, 'author', 1, 'numOfComic'),
-                    handleIncNumPromise(checkComic.author, 'author', -1, 'numOfComic')
-                ])
+            const handleAddCategoriesPromise = categoriesNeedAdd.length > 0 ? (Promise.all([
+                Comic.addToCollection(updatedComic.id, 'categories', categoriesNeedAdd),
+                handleIncNumPromise(categoriesNeedAdd, 'category', 1, 'numOfComic')
+            ])) : null
+            const handleRemoveCategoriesPromise = categoriesNeedRemove.length > 0 ? (Promise.all([
+                Comic.removeFromCollection(updatedComic.id, 'categories', categoriesNeedRemove),
+                handleIncNumPromise(categoriesNeedRemove, 'category', -1, 'numOfComic')
+            ])) : null
+            // const comicAddCategoriesPromise = Comic.addToCollection(updatedComic.id, 'categories', categoriesNeedAdd)
+            // const comicRemoveCategoriesPromise = Comic.removeFromCollection(updatedComic.id, 'categories', categoriesNeedRemove)
+            const updateNumComicOfAuthorPromise = () => {
+                if (updatedComic.author != checkComic.author) {
+                    return Promise.all([
+                        handleIncNumPromise(updatedComic.author, 'author', 1, 'numOfComic'),
+                        handleIncNumPromise(checkComic.author, 'author', -1, 'numOfComic')
+                    ])
+                }
             }
+            Promise.all([
+                handleAddCategoriesPromise, handleRemoveCategoriesPromise, updateNumComicOfAuthorPromise
+            ])
         }
-        Promise.all([
-            comicAddCategoriesPromise, comicRemoveCategoriesPromise, updateNumComicOfAuthorPromise
-        ])
 
         return res.status(200).json({ err: 200, message: 'Cập nhật thành công', })
     }),
@@ -192,6 +204,10 @@ module.exports = {
             select: ['updatedAt', 'numOfView', 'numOfComment', 'numOfLike', 'index']
         }).sort('index asc')
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
+        const getHotCommentsPromise = Comment.find({
+            where: { comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
+            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
+        }).sort([{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }]).limit(3)
         let getInteractComicPromise = null
         let getUserPromise = null
         if (userId) {
@@ -199,9 +215,12 @@ module.exports = {
             getUserPromise = User.findOne({ where: { id: userId }, select: ['authorFollowing', 'comicFollowing'] })
         }
 
-        const [comic, chapters, categories, interactComic, checkUser] = await Promise.all([
+        const [
+            comic, chapters, categories,
+            interactComic, checkUser, hotsComment
+        ] = await Promise.all([
             comicDetailPromise, getComicChaptersPromise, getComicCategoriesPromise,
-            getInteractComicPromise, getUserPromise
+            getInteractComicPromise, getUserPromise, getHotCommentsPromise
         ])
         if (!comic)
             throw new AppError(400, 'Comic không tồn tại vui lòng thử lại hoặc thử ID khác.', 400)

@@ -61,7 +61,7 @@ module.exports = {
         if (!userId) throw new AppError(400, 'Bad Request', 400)
 
         const getUserPromise = User.findOne({ where: { id: userId }, select: ['vipPoint'] })
-        const getListVipPromise = Vip.find({})
+        const getListVipPromise = Vip.find({}).sort('index asc')
         const [user, listVip] = await Promise.all([getUserPromise, getListVipPromise])
         if (!user) throw new AppError(400, 'User not exists in system', 400)
         if (!listVip) throw new AppError(400, 'Cannot get list vip. Pls try again.', 400)
