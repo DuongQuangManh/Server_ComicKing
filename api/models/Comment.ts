@@ -29,7 +29,7 @@ module.exports = {
 
     comment: { model: 'comment' },
 
-    comic: { model: 'comic' },
+    comic: { model: 'comic', required: true },
 
     content: { type: 'string', required: true },
 

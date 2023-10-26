@@ -16,6 +16,7 @@ declare const Chapter: any
 declare const Comic: any
 declare const User: any
 declare const InteractComic: any
+declare const Comment: any
 
 module.exports = {
 
@@ -158,6 +159,7 @@ module.exports = {
         return res.status(200).json({ err: 200, message: 'Success' })
     }),
 
+    // api/user/detailChapter
     clientDetail: tryCatch(async (req, res) => {
         const { comicId, userId, chapterIndex } = req.body
         if (!comicId || !userId || !chapterIndex) throw new AppError(400, 'Bad request.', 400)
@@ -210,4 +212,41 @@ module.exports = {
         return res.status(200).json({ err: 200, message: 'Success', data: chapter })
     }),
 
+    // api/user/chapter/getListComment
+    getListComment: tryCatch(async (req, res) => {
+        const { userId, comicId, chapterId, skip = 0, limit = 15, sort = 'hot' } = req.body
+        if (typeof (comicId) != 'string' || typeof (chapterId) != 'string')
+            throw new AppError(400, 'Bad request', 400)
+
+        let getUserPromise = null
+        let getInteractComicPromise = null
+        if (userId) {
+            getUserPromise = User.findOne({ where: { id: userId }, select: ['likeMyComments'] })
+            getInteractComicPromise = InteractComic.findOne({ where: { user: userId, comic: comicId } })
+        }
+        const getListCommentPromise = Comment.find({
+            where: { chapterId: chapterId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
+            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
+        }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
+            .skip(skip).limit(limit)
+
+        const [user, listComment = [], interactComic] = await Promise.all([
+            getUserPromise, getListCommentPromise, getInteractComicPromise
+        ])
+
+        let likeCommentsArray = []
+        if (user) likeCommentsArray = [...user.likeMyComments]
+        if (interactComic) likeCommentsArray = [...likeCommentsArray, ...interactComic.likeComments]
+        const likeCommentsSet = new Set(likeCommentsArray)
+        for (let comment of listComment) {
+            if (likeCommentsSet.has(comment.id)) {
+                comment.isLike = true
+            }
+        }
+
+        return res.status(200).json({
+            err: 200, message: 'Success', data: listComment,
+            skip, limit
+        })
+    })
 }
