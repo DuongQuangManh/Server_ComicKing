@@ -99,9 +99,9 @@ module.exports.routes = {
   'POST /api/admin/findLevel': 'LevelController.adminFind',
 
   // comment
-  'POST /api/admin/detailComment': 'LevelController.adminComment',
-  'POST /api/admin/findComment': 'LevelController.adminComment',
-  'POST /api/admin/editComment': 'LevelController.edit',
+  'POST /api/admin/detailComment': 'CommentController.adminDetail',
+  'POST /api/admin/findComment': 'CommentController.adminFind',
+  'POST /api/admin/editComment': 'CommentController.edit',
 
   /**
     CLIENT 
@@ -146,13 +146,17 @@ module.exports.routes = {
   // comic
   'POST /api/user/findComic': 'ComicController.clientFind',
   'POST /api/user/detailComic': 'ComicController.clientDetail',
-  'POST /api/user/getNewestComics': 'ComicController.getNewestComics',
-  'POST /api/user/getProposeComics': 'ComicController.getProposeComics',
-  'POST /api/user/getSliderComics': 'ComicController.getSliderComics',
-  'POST /api/user/getDoneComics': 'ComicController.getDoneComics',
+  'POST /api/user/comic/getListComment': 'ComicController.getListComment',
+
+  // home client
+  'POST /api/user/getNewestComics': 'ClientHomeController.getNewestComics',
+  'POST /api/user/getProposeComics': 'ClientHomeController.getProposeComics',
+  'POST /api/user/getSliderComics': 'ClientHomeController.getSliderComics',
+  'POST /api/user/getDoneComics': 'ClientHomeController.getDoneComics',
 
   // chapter
   'POSt /api/user/detailChapter': 'ChapterController.clientDetail',
+  'POST /api/user/chapter/getListComment': 'ChapterController.getListComment',
 
   // author
   'POST /api/user/findAuthor': 'AuthorController.clientFind',
@@ -169,5 +173,6 @@ module.exports.routes = {
 
   // comment
   'POST /api/user/findComment': 'CommentController.clientFind',
-  'POST /api/user.detailComment': 'CommentController.clientDetail'
+  'POST /api/user/detailComment': 'CommentController.clientDetail',
+  'POST /api/user/comment/getListComment' : 'CommentController.getListComment'
 };

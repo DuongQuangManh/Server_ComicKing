@@ -21,6 +21,7 @@ declare const Category: any
 declare const InteractComic: any
 declare const User: any
 declare const Comment: any
+declare const _: any
 
 module.exports = {
 
@@ -206,26 +207,27 @@ module.exports = {
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
         const getHotCommentsPromise = Comment.find({
             where: { comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
+            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike', 'sender'],
         }).sort([{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }]).limit(3)
         let getInteractComicPromise = null
         let getUserPromise = null
         if (userId) {
-            getInteractComicPromise = InteractComic.findOne({ user: userId, comic: comicId })
-            getUserPromise = User.findOne({ where: { id: userId }, select: ['authorFollowing', 'comicFollowing'] })
+            getInteractComicPromise = InteractComic.findOne({ where: { user: userId, comic: comicId }, select: ['likeComments'] })
+            getUserPromise = User.findOne({
+                where: { id: userId },
+                select: ['authorFollowing', 'comicFollowing', 'likeMyComments']
+            })
         }
 
         const [
-            comic, chapters, categories,
-            interactComic, checkUser, hotsComment
+            comic, chapters, categories, interactComic, checkUser, hotComments
         ] = await Promise.all([
             comicDetailPromise, getComicChaptersPromise, getComicCategoriesPromise,
             getInteractComicPromise, getUserPromise, getHotCommentsPromise
         ])
-        if (!comic)
-            throw new AppError(400, 'Comic không tồn tại vui lòng thử lại hoặc thử ID khác.', 400)
+        if (!comic) throw new AppError(400, 'Comic không tồn tại vui lòng thử lại hoặc thử ID khác.', 400)
 
-        let { readedChapters, readingChapter } = interactComic ?? {}
+        let { readedChapters, readingChapter, likeComments } = interactComic ?? {}
         const readedChaptersSet = new Set(readedChapters ?? [])
         comic.chapters = chapters?.map((chapter: any) => {
             chapter.isRead = readedChaptersSet.has(chapter.id)
@@ -236,99 +238,73 @@ module.exports = {
             id: val?.category?.id,
             title: val?.category?.title,
         }))
-        // check following author + comic
-        if (checkUser && comic.author) {
-            if (checkUser.authorFollwing?.includes(comic.author.id)) {
-                comic.author.isFollwing = true
+        if (checkUser) {
+            // check following author
+            if (comic.author) {
+                if (checkUser.authorFollwing?.includes(comic.author.id)) {
+                    comic.author.isFollwing = true
+                }
             }
+            // check following comic
             if (checkUser.comicFollowing?.includes(comic.id)) {
                 comic.isFollowing = true
             }
+            // check like comment
+            const likeMyCommentsSet = new Set(checkUser.likeMyComments ?? [])
+            const likeCommentsSet = new Set(likeComments)
+            hotComments?.forEach((comment: any) => {
+                if (comment.sender == userId) {
+                    if (likeMyCommentsSet.has(comment.id)) comment.isLike = true
+                } else {
+                    if (likeCommentsSet.has(comment.id)) comment.isLike = true
+                }
+            });
         }
+        comic.hotComments = hotComments
 
         comic.readingChapter = readingChapter ?? 0
         comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
         helper.deleteFields(comic, 'createdAt', 'uId', 'status', 'updatedAt')
 
-        return res.status(200).json({ err: 200, message: 'Success', data: comic })
+        return res.status(200).json({ err: 200, message: 'Success', data: comic, })
     }),
 
-    getHomeComics: tryCatch(async (req, res) => {
+    // api/user/comic/getListComment
+    getListComment: tryCatch(async (req, res) => {
+        const { userId, comicId, skip = 0, limit = 15, sort = 'hot' } = req.body
+        if (typeof (comicId) != 'string')
+            throw new AppError(400, 'Bad request', 400)
 
-    }),
+        let getUserPromise = null
+        let getInteractComicPromise = null
+        if (userId) {
+            getUserPromise = User.findOne({ where: { id: userId }, select: ['likeMyComments'] })
+            getInteractComicPromise = InteractComic.findOne({ where: { user: userId, comic: comicId } })
+        }
+        const getListCommentPromise = Comment.find({
+            where: { comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
+            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
+        }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
+            .skip(skip).limit(limit)
 
-    getDoneComics: tryCatch(async (req, res) => {
-        let limit = 6
+        const [user, listComment = [], interactComic] = await Promise.all([
+            getUserPromise, getListCommentPromise, getInteractComicPromise
+        ])
 
-        const doneComics = await Comic.find({
-            where: {
-                status: constants.COMIC_STATUS.DONE
-            },
-            limit
-        })
+        let likeCommentsArray = []
+        if(user) likeCommentsArray = [...user.likeMyComments]
+        if(interactComic) likeCommentsArray = [...likeCommentsArray, ...interactComic.likeComments]
+        const likeCommentsSet = new Set(likeCommentsArray)
+        for (let comment of listComment) {
+            if (likeCommentsSet.has(comment.id)) {
+                comment.isLike = true
+            }
+        }
 
         return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: {
-                title: 'Hoàn thành',
-                canMore: true,
-                listComic: doneComics
-            }
-        })
-    }),
-
-    getSliderComics: tryCatch(async (req, res) => {
-        let limit = 6
-
-        const sliderComics = await Comic.find({
-            limit
-        })
-
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: {
-                title: '',
-                canMore: false,
-                listComic: sliderComics
-            }
-        })
-    }),
-
-    getNewestComics: tryCatch(async (req, res) => {
-        let limit = 6
-
-        const newestComics = await Comic.find({}).sort('updatedAt desc').limit(limit)
-
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: {
-                title: 'Mới nhất',
-                canMore: true,
-                listComic: newestComics
-            }
-        })
-    }),
-
-    getProposeComics: tryCatch(async (req, res) => {
-        let limit = 6
-
-        const proposeComics = await Comic.find({
-            limit,
-            skip: 6
-        })
-
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: {
-                title: 'Đề xuất',
-                canMore: false,
-                listComic: proposeComics
-            }
+            err: 200, message: 'Success', data: listComment,
+            skip, limit
         })
     })
 };

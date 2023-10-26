@@ -447,6 +447,7 @@ module.exports = {
         const updatedUser = await User.updateOne({ id: userId }).set({ avatarFrame: avatarFrameRespone.id })
         if (!updatedUser)
             throw new AppError(400, 'Cannot update avatar frame. Pls try againt', 400)
+        Comment.update({ sender: userId }).set({ avatarFrame: avatarFrameRespone.image })
 
         return res.status(200).json({ err: 200, message: 'Success', data: avatarFrameRespone })
     }),
@@ -485,6 +486,7 @@ module.exports = {
         const updatedUser = await User.updateOne({ id: userId }).set({ avatarTitle: avatarTitleRespone.id })
         if (!updatedUser)
             throw new AppError(400, 'Cannot update avatar frame. Pls try againt', 400)
+        Comment.update({ sender: userId }).set({ avatarTitle: avatarTitleRespone.image })
 
         return res.status(200).json({ err: 200, message: 'Success', data: avatarTitleRespone })
     }),
@@ -584,16 +586,25 @@ module.exports = {
     // api/user/toggleLikeComment
     toggleLikeComment: tryCatch(async (req, res) => {
         const { userId, commentId, comicId, isLike } = req.body
-        if (typeof (userId) != 'string' || typeof (commentId) != 'string' || typeof (comicId) != 'string' || isLike != 'boolean')
-            throw new AppError(400, 'Bad request', 400)
+        if (
+            typeof (userId) != 'string' || typeof (commentId) != 'string'
+            || typeof (comicId) != 'string' || typeof (isLike) != 'boolean'
+        ) throw new AppError(400, 'Bad request', 400)
 
         const getUserPromise = User.findOne({ where: { id: userId }, select: ['likeMyComments'] })
-        const getCommentPromise = Comment.findOne({ where: { id: commentId }, select: ['comic'] })
-        const getInteractComicPromise = InteractComic.findOne({ where: { comic: comicId, user: userId } })
-        let [user, comment, interactComic] = await Promise.all([getUserPromise, getCommentPromise, getInteractComicPromise])
+        const getCommentPromise = Comment.findOne({ where: { id: commentId }, select: ['comic', 'sender'] })
+        const getInteractComicPromise = InteractComic.findOne({
+            where: { comic: comicId, user: userId },
+            select: ['likeComments']
+        })
+        let [user, comment, interactComic] = await Promise.all([
+            getUserPromise, getCommentPromise, getInteractComicPromise
+        ])
 
         if (!user) throw new AppError(400, 'User is not exists in system.', 400)
         if (!comment) throw new AppError(400, 'Comment is not exists in system.', 400)
+        if (comment.comic != comicId) throw new AppError(400, `Comment not contain in comic with id ${comicId}`, 400)
+
         if (comment.sender == userId) {
             // handle when toggle like self comment
             const likeCommentsSet = new Set(user.likeMyComments ?? [])
@@ -601,12 +612,12 @@ module.exports = {
             let handleIncCommentNumOfLike = null
             if (likeCommentsSet.has(commentId) && !isLike) {
                 likeCommentsSet.delete(commentId)
-                updateUserPromise = User.updateOne({ id: user.id }).set({ likeComments: [...likeCommentsSet] })
+                updateUserPromise = User.updateOne({ id: user.id }).set({ likeMyComments: [...likeCommentsSet] })
                 handleIncCommentNumOfLike = handleIncNumPromise(commentId, 'comment', -1, 'numOfLike')
             }
             if (!likeCommentsSet.has(commentId) && isLike) {
                 likeCommentsSet.add(commentId)
-                updateUserPromise = User.updateOne({ id: user.id }).set({ likeComments: [...likeCommentsSet] })
+                updateUserPromise = User.updateOne({ id: user.id }).set({ likeMyComments: [...likeCommentsSet] })
                 handleIncCommentNumOfLike = handleIncNumPromise(commentId, 'comment', 1, 'numOfLike')
             }
             await Promise.all([handleIncCommentNumOfLike, updateUserPromise])

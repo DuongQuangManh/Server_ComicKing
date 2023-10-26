@@ -40,7 +40,7 @@ module.exports = {
 
         const total = await Category.count({})
         const categories = await Category.find({
-            select: ['title', 'description', 'numOfComic', 'status'],
+            select: ['title', 'description', 'numOfComic', 'status', 'createdAt'],
             ...findOption
         })
 
