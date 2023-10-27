@@ -252,15 +252,15 @@ module.exports = {
             // check like comment
             const likeMyCommentsSet = new Set(checkUser.likeMyComments ?? [])
             const likeCommentsSet = new Set(likeComments)
-            hotComments?.forEach((comment: any) => {
+            comic.hotComments = hotComments?.map((comment: any) => {
                 if (comment.sender == userId) {
                     if (likeMyCommentsSet.has(comment.id)) comment.isLike = true
                 } else {
                     if (likeCommentsSet.has(comment.id)) comment.isLike = true
                 }
+                return comment
             });
         }
-        comic.hotComments = hotComments
 
         comic.readingChapter = readingChapter ?? 0
         comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)

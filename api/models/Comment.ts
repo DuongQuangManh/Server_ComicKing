@@ -27,6 +27,8 @@ module.exports = {
 
     chapter: { model: 'chapter', },
 
+    chapterIndex: { type: 'number', defaultsTo: 0 },
+
     comment: { model: 'comment' },
 
     comic: { model: 'comic', required: true },

@@ -162,7 +162,8 @@ module.exports = {
     // api/user/detailChapter
     clientDetail: tryCatch(async (req, res) => {
         const { comicId, userId, chapterIndex } = req.body
-        if (!comicId || !userId || !chapterIndex) throw new AppError(400, 'Bad request.', 400)
+        if (typeof (comicId) != 'string' || typeof (chapterIndex) != 'number')
+            throw new AppError(400, 'Bad request.', 400)
 
         const getChapterPromise = Chapter.findOne({
             where: {
@@ -171,42 +172,65 @@ module.exports = {
             },
             select: ['images', 'index']
         })
-        const getUserPromise = User.findOne({ where: { id: userId }, select: [] })
-        const getInteractComicPromise = InteractComic.findOne({ where: { user: userId, comic: comicId } })
+        const getHotCommentsPromise = Comment.find({
+            where: { chapterIndex, comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
+            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike', 'sender'],
+        }).sort([{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }]).limit(3)
+        let getInteractComicPromise = null
+        let getUserPromise = null
+        if (userId) {
+            getInteractComicPromise = InteractComic.findOne({
+                where: { user: userId, comic: comicId },
+                select: ['likeComments', 'likeChapters', 'readedChapters', 'readingChapter']
+            })
+            getUserPromise = User.findOne({ where: { id: userId }, select: ['likeMyComments'] })
+        }
 
-        const [chapter, checkUser, interactComic] = await Promise.all([getChapterPromise, getUserPromise, getInteractComicPromise])
+        const [chapter, checkUser, interactComic, hotComments] = await Promise.all([
+            getChapterPromise, getUserPromise, getInteractComicPromise, getHotCommentsPromise
+        ])
         if (!chapter) throw new AppError(400, 'Chapter không tồn tại.', 400)
 
-        let updateinteractComicPromise = null
-        if (interactComic) {
-            let { readedChapters, readingChapter, likeChapters } = interactComic
-            // handle update
-            let updateBody = null
-            if (readingChapter != chapterIndex) updateBody = { readingChapter: chapterIndex }
-            if (!readedChapters?.includes(chapter.id)) {
-                readedChapters.push(chapter.id)
-                updateBody = { ...updateBody, readedChapters }
-            }
-            if (updateBody)
-                updateinteractComicPromise = InteractComic.updateOne({ id: interactComic.id }).set(updateBody)
-            // check like
-            chapter.isLike = likeChapters?.includes(chapter.id) ? true : false
-        } else {
-            if (checkUser) {
-                updateinteractComicPromise = InteractComic.create({
+        let createInteractComicPromise = null
+        if (checkUser) {
+            let likeCommentsSet = new Set([])
+            let likeMyCommentsSet = new Set(checkUser.likeMyComments ?? [])
+            if (interactComic) {
+                let { readedChapters, readingChapter, likeChapters = [], likeComments = [] } = interactComic
+                likeCommentsSet = new Set(likeComments)
+                // handle update
+                let updateBody = null
+                if (readingChapter != chapterIndex) updateBody = { readingChapter: chapterIndex }
+                if (!readedChapters?.includes(chapter.id)) {
+                    readedChapters.push(chapter.id)
+                    updateBody = { ...updateBody, readedChapters }
+                }
+                if (updateBody)
+                    createInteractComicPromise = InteractComic.updateOne({ id: interactComic.id }).set(updateBody)
+                // check like
+                chapter.isLike = likeChapters?.includes(chapter.id) ? true : false
+            } else {
+                createInteractComicPromise = InteractComic.create({
                     user: userId, comic: comicId,
                     readedChapters: [chapter.id],
                     readingChapter: chapterIndex
                 })
             }
-            chapter.isLike = false
+            chapter.hotComments = hotComments.map((comment: any) => {
+                if (comment.sender == userId) {
+                    if (likeMyCommentsSet.has(comment.id)) comment.isLike = true
+                } else {
+                    if (likeCommentsSet.has(comment.id)) comment.isLike = true
+                }
+                return comment
+            })
         }
         const incrementChapterViewPromise = handleIncNumPromise(chapter.id, 'chapter', 1, 'numOfView')
         const incrementComicViewPromise = handleIncNumPromise(comicId, 'comic', 1, 'numOfView')
         const incrementLevelPointPromise = handleIncNumPromise(userId, 'user', 1, 'levelPoint')
         Promise.all([
             incrementChapterViewPromise, incrementComicViewPromise,
-            updateinteractComicPromise, incrementLevelPointPromise
+            createInteractComicPromise, incrementLevelPointPromise
         ])
 
         return res.status(200).json({ err: 200, message: 'Success', data: chapter })
