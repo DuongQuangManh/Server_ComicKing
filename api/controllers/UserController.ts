@@ -499,18 +499,18 @@ module.exports = {
 
         const getSenderPromise = User.findOne({
             where: { id: senderId },
-            select: ['avatarFrame', 'avatarTitle', 'level', 'vip']
+            select: ['avatarFrame', 'level']
         })
         const getChapterPromise = Chapter.findOne({ where: { index: chapterIndex, comic: comicId }, select: ['comic'] })
         const [sender, chapter] = await Promise.all([getSenderPromise, getChapterPromise])
         if (!sender) throw new AppError(400, 'User is not exists in system', 400)
         if (!chapter) throw new AppError(400, 'Chapter is not exists in system', 400)
 
-        const { id, avatarFrame, avatarTitle, level, vip } = sender
+        const avatarFrame = await Decorate.findOne({ where: { id: sender.avatarFrame } })
+        const { id, level } = sender
         const createdComment = await Comment.create({
-            sender: id, content, avatarFrame,
-            avatarTitle, level, vip,
-            chapter: chapter.id, comic: chapter.comic
+            sender: id, content, avatarFrame: avatarFrame?.image,
+            level, chapterIndex, chapter: chapter.id, comic: chapter.comic
         }).fetch()
         if (!createdComment) throw new AppError(400, 'Cannot send comment. Please try again.', 400)
 
@@ -529,17 +529,18 @@ module.exports = {
 
         const getSenderPromise = User.findOne({
             where: { id: senderId },
-            select: ['avatarFrame', 'avatarTitle', 'level', 'vip']
+            select: ['avatarFrame', 'level']
         })
         const getComicPromise = Comic.findOne({ where: { id: comicId }, select: [] })
         const [sender, comic] = await Promise.all([getSenderPromise, getComicPromise])
         if (!sender) throw new AppError(400, 'User is not exists in system', 400)
         if (!comic) throw new AppError(400, 'Comic is not exists in system', 400)
 
-        const { id, avatarFrame, avatarTitle, level, vip } = sender
+        const avatarFrame = await Decorate.findOne({ where: { id: sender.avatarFrame } })
+        const { id, level } = sender
         const createdComment = await Comment.create({
-            sender: id, content, avatarFrame,
-            avatarTitle, level, vip, comic: comic.id
+            sender: id, content, avatarFrame: avatarFrame?.image,
+             level, comic: comic.id
         }).fetch()
         if (!createdComment) throw new AppError(400, 'Cannot send comment. Please try again.', 400)
 
@@ -565,11 +566,11 @@ module.exports = {
         if (!comment) throw new AppError(400, 'Comment is not exists in system', 400)
         if (!comment.canContainComment) throw new AppError(400, 'This comment cannot contain comment.', 400)
 
-        const { id, avatarFrame, avatarTitle, level, vip } = sender
+        const avatarFrame = await Decorate.findOne({ where: { id: sender.avatarFrame } })
+        const { id, level } = sender
         const { comic, chapter } = comment
         const createdComment = await Comment.create({
-            sender: id, content, avatarFrame,
-            avatarTitle, level, vip,
+            sender: id, content, avatarFrame: avatarFrame?.image, level, 
             comic, chapter, comment: commentId,
             canContainComment: false
         }).fetch()
