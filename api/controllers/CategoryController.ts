@@ -31,6 +31,21 @@ module.exports = {
         })
     }),
 
+    clientFind: tryCatch(async (req, res) => {
+        const { skip = 0, limit = 15 } = req.body
+        const listCategory = await Category.find({
+            where: {
+                status: constants.COMMON_STATUS.ACTIVE
+            },
+            skip, limit
+        })
+
+        return res.status(200).json({
+            message: 'Success', err: 200,
+            data: listCategory, skip, limit
+        })
+    }),
+
     adminFind: tryCatch(async (req, res) => {
         const { limit = 10, skip = 0 } = req.body
 

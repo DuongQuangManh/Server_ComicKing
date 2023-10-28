@@ -51,7 +51,7 @@ module.exports = {
         }
         const getListCommentPromise = Comment.find({
             where: { comment: commentId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
+            select: ['senderInfo', 'content', 'createdAt' , 'numOfComment', 'numOfLike'],
         }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
             .skip(skip).limit(limit)
 
