@@ -17,13 +17,7 @@ module.exports = {
 
     sender: { model: 'user' },
 
-    avatarFrame: { type: 'string' },
-
-    avatarTitle: { type: 'string' },
-
-    level: { type: 'number' },
-
-    vip: { type: 'number' },
+    senderInfo: {type: 'json', columnType: 'object'},
 
     chapter: { model: 'chapter', },
 
