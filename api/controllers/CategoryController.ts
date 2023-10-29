@@ -6,43 +6,25 @@
  */
 
 import { constants } from "../constants/constants";
+import { AppError } from "../custom/customClass";
 import tryCatch from "../utils/tryCatch";
+import { ObjectId } from 'mongodb'
 
+declare const sails: any
 declare const Category: any
 
 module.exports = {
-    get: tryCatch(async (req, res) => {
-        const { limit = 30, skip = 0 } = req.body
-        const findOption = { skip, limit }
-
-        const categories = await Category.find({
-            where: {
-                status: constants.COMMON_STATUS.ACTIVE
-            },
-            select: ['title', 'description', 'numOfComic'],
-            ...findOption
-        })
-
-        return res.status(200).json({
-            message: 'Find Success',
-            err: 200,
-            data: categories,
-            ...findOption
-        })
-    }),
 
     clientFind: tryCatch(async (req, res) => {
-        const { skip = 0, limit = 15 } = req.body
         const listCategory = await Category.find({
             where: {
                 status: constants.COMMON_STATUS.ACTIVE
             },
-            skip, limit
         })
 
         return res.status(200).json({
             message: 'Success', err: 200,
-            data: listCategory, skip, limit
+            data: listCategory,
         })
     }),
 
@@ -93,6 +75,54 @@ module.exports = {
             data: category
         })
     }),
+
+    getListComic: tryCatch(async (req, res) => {
+        const { categoryId, skip = 0, limit = 15, sort = 'hot' } = req.body
+        if (typeof (categoryId) != 'string') throw new AppError(400, 'Bad Request', 400)
+
+        const db = sails.getDatastore().manager
+        const listComic = await db.collection('comic').aggregate([
+            {
+                $lookup: {
+                    from: 'comiccategory',
+                    localField: '_id',
+                    foreignField: 'comic',
+                    as: 'categories'
+                }
+            },
+            {
+                $match: { "categories.category": ObjectId(categoryId) }
+            },
+            {
+                $sort: sort == 'hot' ? { numOfView: -1, numOfLike: -1 } : { createdAt: -1 }
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
+            },
+            {
+                $project: {
+                    id: '$_id',
+                    name: 1,
+                    image: 1,
+                    description: 1,
+                    numOfComment: 1,
+                    numOfLike: 1,
+                    numOfChapter: 1,
+                    numOfView: 1,
+                    createdAt: 1,
+                    updatedChapterAt: 1,
+                }
+            }
+        ]).toArray()
+
+        return res.status(200).json({
+            err: 200, message: 'Success',
+            data: listComic, skip, limit
+        })
+    })
 
 };
 

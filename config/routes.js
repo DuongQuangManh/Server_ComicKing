@@ -41,22 +41,22 @@ module.exports.routes = {
   'POST /api/admin/editSpecial': 'SpecialListController.edit',
   'POST /api/admin/find': 'SpecialListController.find',
   'POST /api/admin/detail': 'SpecialListController.detail',
-
+  
   // user
   'POST /api/admin/addUser': 'UserController.add',
   'POST /api/admin/editUser': 'UserController.edit',
   'POST /api/admin/findUser': 'UserController.find',
   'POST /api/admin/detailUser': 'UserController.detail',
-
+  
   // otp
   'POST /api/admin/findOtp': 'OtpController.find',
   'POST /api/admin/findOtpVerification': 'OtpController.otpVerificationFind',
-
+  
   // category
   'POST /api/admin/findCategory': 'CategoryController.adminFind',
   'POST /api/admin/addCategory': 'CategoryController.add',
   'POST /api/admin/editCategory': 'CategoryController.edit',
-
+  
   // author
   'POST /api/admin/findAuthor': 'AuthorController.adminFind',
   'POST /api/admin/editAuthor': 'AuthorController.edit',
@@ -68,13 +68,13 @@ module.exports.routes = {
   'POST /api/admin/addComic': 'ComicController.add',
   'POST /api/admin/editComic': 'ComicController.edit',
   'POST /api/admin/detailComic': 'ComicController.adminDetail',
-
+  
   // chapter
   'POST /api/admin/findChapter': 'ChapterController.find',
   'POST /api/admin/addChapter': 'ChapterController.add',
   'POST /api/admin/editChapter': 'ChapterController.edit',
   'POST /api/admin/detailChapter': 'ChapterController.adminDetail',
-
+  
   // pending data
   'POST /api/admin/getComicPendingData': 'PendingController.getComicPendingData',
   'POST /api/admin/getCategoriesPending': 'PendingController.getCategories',
@@ -91,13 +91,13 @@ module.exports.routes = {
   'POST /api/admin/editVip': 'VipController.edit',
   'POST /api/admin/detailVip': 'VipController.adminDetail',
   'POST /api/admin/findVip': 'VipController.adminFind',
-
+  
   //level
   'POST /api/admin/addLevel': 'LevelController.add',
   'POST /api/admin/editLevel': 'LevelController.edit',
   'POST /api/admin/detailLevel': 'LevelController.adminDetail',
   'POST /api/admin/findLevel': 'LevelController.adminFind',
-
+  
   // comment
   'POST /api/admin/detailComment': 'CommentController.adminDetail',
   'POST /api/admin/findComment': 'CommentController.adminFind',
@@ -107,7 +107,7 @@ module.exports.routes = {
     CLIENT 
   **/
 
-  // authen
+      // authen
   'POST /api/user/login': 'AuthController.login',
   'POST /api/user/register': 'AuthController.register',
   'POST /api/user/registerVerifyOtp': 'AuthController.registerVerifyOtp',
@@ -139,38 +139,40 @@ module.exports.routes = {
   'POST /api/user/sendCommentInComment': 'UserController.sendCommentInComment',
   'POST /api/user/toggleLikeComment': 'UserController.toggleLikeComment',
   'POST /api/user/getListCommented': 'UserController.getListCommented',
+  'POST /api/user/findCategory': 'CategoryController.clientFind',
 
   // category
-  'POST /api/category/get': 'CategoryController.get',
-
+  'POST /api/user/category/getListComic': 'CategoryController.getListComic',
+  
   // comic
   'POST /api/user/findComic': 'ComicController.clientFind',
   'POST /api/user/detailComic': 'ComicController.clientDetail',
   'POST /api/user/comic/getListComment': 'ComicController.getListComment',
 
-  // home client
+    // home client
   'POST /api/user/getNewestComics': 'ClientHomeController.getNewestComics',
   'POST /api/user/getProposeComics': 'ClientHomeController.getProposeComics',
   'POST /api/user/getSliderComics': 'ClientHomeController.getSliderComics',
   'POST /api/user/getDoneComics': 'ClientHomeController.getDoneComics',
-
+  'POST /api/user/getHotComic': 'ClientHomeController.getHotComic',
+  
   // chapter
   'POSt /api/user/detailChapter': 'ChapterController.clientDetail',
   'POST /api/user/chapter/getListComment': 'ChapterController.getListComment',
-
+  
   // author
   'POST /api/user/findAuthor': 'AuthorController.clientFind',
   'POST /api/user/detailAuthor': 'AuthorController.clientDetail',
-
+  
   // decorate
   'POST /api/user/findDecorate': 'DecorateController.clientFind',
-
+  
   // vip
   'POST /api/user/findVip': 'VipController.clientFind',
-
+  
   // level
   'POST /api/user/findLevel': 'LevelController.clientFind',
-
+  
   // comment
   'POST /api/user/findComment': 'CommentController.clientFind',
   'POST /api/user/detailComment': 'CommentController.clientDetail',

@@ -313,7 +313,7 @@ module.exports = {
                 where: {
                     id: { in: checkUser.comicFollowing }
                 },
-                select: ['name', 'description', 'isHot', 'image'],
+                select: ['name', 'description', 'isHot', 'image', 'numOfView', 'numOfLike', 'numOfComment', 'numOfChapter'],
                 skip, limit
             })
         }
@@ -337,7 +337,7 @@ module.exports = {
         if (checkUser.authorFollowing) {
             authorFollowing = await Author.find({
                 where: { id: { in: checkUser.authorFollowing } },
-                select: ['name', 'image'],
+                select: ['name', 'image', 'numOfFollow', 'numOfComic', 'description'],
                 skip, limit
             })
         }
