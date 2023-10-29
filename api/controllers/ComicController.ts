@@ -13,6 +13,7 @@ import { v4 as uuidV4 } from 'uuid'
 import { helper } from "../utils/helper";
 import { handleIncNumPromise } from "../services";
 
+declare const sails: any
 declare const Comic: any
 declare const ComicCategory: any
 declare const Chapter: any
@@ -21,7 +22,6 @@ declare const Category: any
 declare const InteractComic: any
 declare const User: any
 declare const Comment: any
-declare const _: any
 
 module.exports = {
 
@@ -178,18 +178,45 @@ module.exports = {
     }),
 
     clientFind: tryCatch(async (req, res) => {
-        const { skip = 0, limit = 20 } = req.body
+        const { skip = 0, limit = 15, sort = 'new', name } = req.body
+        if (typeof (name) != 'string') throw new AppError(400, 'Bad Request', 400)
 
-        const findOption = { skip, limit }
-
-        const listComic = await Comic.find({
-            ...findOption
-        })
+        const db = sails.getDatastore().manager
+        const listComic = await db.collection('comic').aggregate([
+            {
+                $match: {name: { $regex: new RegExp(`${name.trim()}`, 'im') }}
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
+            },
+            {
+                $sort : sort == 'hot' ? { numOfView: -1, numOfLike: -1 } : { createdAt: -1 }
+            },
+            {
+                $project: {
+                    id: '$_id',
+                    description: 1,
+                    numOfLike: 1,
+                    numOfFollow: 1,
+                    numOfComment: 1,
+                    numOfChapter: 1,
+                    name: 1,
+                    createdAt: 1,
+                    updatedChapterAt: 1,
+                    image: 1,
+                    numOfView: 1
+                }
+            }
+        ]).toArray()
 
         return res.status(200).json({
             err: 200,
             message: 'Success',
-            data: listComic
+            data: listComic,
+            skip, limit
         })
     }),
 
@@ -207,7 +234,7 @@ module.exports = {
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
         const getHotCommentsPromise = Comment.find({
             where: { comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['senderInfo',  'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt'],
+            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt'],
         }).sort([{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }]).limit(3)
         let getInteractComicPromise = null
         let getUserPromise = null
@@ -265,7 +292,6 @@ module.exports = {
         comic.readingChapter = readingChapter ?? 0
         comic.updatedChapterAt = helper.convertToStringDate(comic.updatedChapterAt, constants.DATE_FORMAT)
         comic.publishedAt = helper.convertToStringDate(comic.publishedAt, constants.DATE_FORMAT)
-        helper.deleteFields(comic, 'createdAt', 'uId', 'status', 'updatedAt')
 
         return res.status(200).json({ err: 200, message: 'Success', data: comic, })
     }),
@@ -284,7 +310,7 @@ module.exports = {
         }
         const getListCommentPromise = Comment.find({
             where: { comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['senderInfo',  'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt'],
+            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt'],
         }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
             .skip(skip).limit(limit)
 
@@ -293,15 +319,14 @@ module.exports = {
         ])
 
         let likeCommentsArray = []
-        if(user) likeCommentsArray = [...user.likeMyComments]
-        if(interactComic) likeCommentsArray = [...likeCommentsArray, ...interactComic.likeComments]
+        if (user) likeCommentsArray = [...user.likeMyComments]
+        if (interactComic) likeCommentsArray = [...likeCommentsArray, ...interactComic.likeComments]
         const likeCommentsSet = new Set(likeCommentsArray)
         for (let comment of listComment) {
             if (likeCommentsSet.has(comment.id)) {
                 comment.isLike = true
             }
         }
-
         return res.status(200).json({
             err: 200, message: 'Success', data: listComment,
             skip, limit
