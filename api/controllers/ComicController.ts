@@ -12,6 +12,7 @@ import tryCatch from "../utils/tryCatch";
 import { v4 as uuidV4 } from 'uuid'
 import { helper } from "../utils/helper";
 import { handleIncNumPromise } from "../services";
+import { getSortObject } from "../services/ComicService";
 
 declare const sails: any
 declare const Comic: any
@@ -178,13 +179,15 @@ module.exports = {
     }),
 
     clientFind: tryCatch(async (req, res) => {
-        const { skip = 0, limit = 15, sort = 'new', name } = req.body
-        if (typeof (name) != 'string') throw new AppError(400, 'Bad Request', 400)
+        const { skip = 0, limit = 15, sort = 'hot', name = '', status = '' } = req.body
 
         const db = sails.getDatastore().manager
         const listComic = await db.collection('comic').aggregate([
             {
-                $match: {name: { $regex: new RegExp(`${name.trim()}`, 'im') }}
+                $match: {
+                    name: { $regex: new RegExp(`${name.trim()}`, 'im') },
+                    status: { $regex: new RegExp(`${status.trim()}`, 'im') }
+                }
             },
             {
                 $skip: skip
@@ -193,7 +196,7 @@ module.exports = {
                 $limit: limit
             },
             {
-                $sort : sort == 'hot' ? { numOfView: -1, numOfLike: -1 } : { createdAt: -1 }
+                $sort: getSortObject(sort)
             },
             {
                 $project: {

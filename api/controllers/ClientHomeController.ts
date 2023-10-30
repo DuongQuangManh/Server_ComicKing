@@ -25,16 +25,21 @@ module.exports = {
                 $match: { status: constants.COMIC_STATUS.DONE }
             },
             {
-                $sort: { createdAt: -1 }
+                $sort: { numOfView: -1, numOfLike: -1, createdAt: -1 }
             },
             {
-                $limit: 6
+                $limit: 4
             },
             {
                 $project: {
                     id: '$_id',
                     image: 1,
-                    name: 1
+                    name: 1,
+                    description: 1,
+                    numOfFollow: 1,
+                    numOfLike: 1,
+                    numOfView: 1,
+                    numOfChapter: 1
                 }
             },
         ]).toArray()
@@ -106,7 +111,8 @@ module.exports = {
                 $project: {
                     id: '$_id',
                     image: 1,
-                    name: 1
+                    name: 1,
+                    banner: 1
                 }
             },
         ]).toArray()

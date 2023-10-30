@@ -31,6 +31,8 @@ module.exports = {
 
     image: { type: 'string', defaultsTo: '' },
 
+    banner: { type: 'string', defaultsTo: 'https://ik.imagekit.io/c7aqey5nn/banner/banner1.png' },
+
     numOfComment: { type: 'number', defaultsTo: 0 },
 
     numOfView: { type: 'number', defaultsTo: 0 },
