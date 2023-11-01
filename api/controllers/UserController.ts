@@ -513,7 +513,8 @@ module.exports = {
             chapter: chapter.id, comic: chapter.comic,
             senderInfo: {
                 avatarFrame: avatarFrame?.image, level, fullName, image
-            }
+            },
+            canContainComment:true
         }).fetch()
         if (!createdComment) throw new AppError(400, 'Cannot send comment. Please try again.', 400)
 
@@ -546,7 +547,8 @@ module.exports = {
             level, comic: comic.id,
             senderInfo: {
                 avatarFrame: avatarFrame?.image, level, fullName, image
-            }
+            },
+            canContainComment:true
         }).fetch()
         if (!createdComment) throw new AppError(400, 'Cannot send comment. Please try again.', 400)
 
@@ -559,6 +561,7 @@ module.exports = {
     // api/user/sendCommentInComment
     sendCommentInComment: tryCatch(async (req, res) => {
         const { senderId, content, commentId } = req.body
+       
         if (typeof (senderId) != 'string' || typeof (content) != 'string' || typeof (commentId) != 'string')
             throw new AppError(400, 'Bad request', 400)
 
@@ -566,10 +569,11 @@ module.exports = {
             where: { id: senderId },
             select: ['avatarFrame', 'image', 'level', 'fullName']
         })
-        const getCommentPromise = Comment.findOne({ where: { id: commentId }, select: ['comic', 'chapter'] })
+        const getCommentPromise = Comment.findOne({ where: { id: commentId }, select: ['comic', 'chapter','canContainComment'] })
         const [sender, comment] = await Promise.all([getSenderPromise, getCommentPromise])
         if (!sender) throw new AppError(400, 'User is not exists in system', 400)
         if (!comment) throw new AppError(400, 'Comment is not exists in system', 400)
+        console.log(comment)
         if (!comment.canContainComment) throw new AppError(400, 'This comment cannot contain comment.', 400)
 
         const avatarFrame = await Decorate.findOne({ where: { id: sender.avatarFrame }, select: ['image'] })
@@ -665,7 +669,7 @@ module.exports = {
         const getUserPromise = User.findOne({ where: { id: userId }, select: ['likeMyComments'] })
         const getListCommentedPromise = Comment.find({
             where: { sender: userId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['avatarFrame', 'vip', 'level', 'content', 'avatarTitle', 'numOfComment', 'numOfLike'],
+            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike','createdAt'],
         }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
             .skip(skip).limit(limit)
         const [user, listComment = []] = await Promise.all([
