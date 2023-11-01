@@ -49,8 +49,9 @@ module.exports.datastores = {
     *                                                                          *
     ***************************************************************************/
     adapter: 'sails-mongo',
-    // url: 'mongodb+srv://bietdoivocuc:2QlMIsGPmS1B5osJ@cluster0.maidsvt.mongodb.net/server?retryWrites=true&w=majority'
-    url: 'mongodb://0.0.0.0:27017/datn_db'
+    url: 'mongodb+srv://bietdoivocuc:2QlMIsGPmS1B5osJ@cluster0.maidsvt.mongodb.net/server?retryWrites=true&w=majority'
+    //url: 'mongodb://0.0.0.0:27017/datn_db'
+    // url: "mongodb+srv://legiatuan03:BGdMuLP01hHNwHbY@cluster0.dhwkrkv.mongodb.net/datn?retryWrites=true&w=majority"
   },
 
 
