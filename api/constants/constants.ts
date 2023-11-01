@@ -16,6 +16,10 @@ export const constants = {
         SUCCESS: 'SUCCESS',
         FAILD: 'FAILD'
     },
+    TIME_LINE: {
+        WEEK: 'week',
+        MONTH: 'month'
+    },
     GENDER: {
         NONE: 'NONE',
         MALE: 'MALE',
