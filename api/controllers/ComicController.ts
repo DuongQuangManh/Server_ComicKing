@@ -237,7 +237,7 @@ module.exports = {
         const getComicCategoriesPromise = ComicCategory.find({ comic: comicId }).populate('category')
         const getHotCommentsPromise = Comment.find({
             where: { comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt'],
+            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt','comic'],
         }).sort([{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }]).limit(3)
         let getInteractComicPromise = null
         let getUserPromise = null
@@ -313,7 +313,7 @@ module.exports = {
         }
         const getListCommentPromise = Comment.find({
             where: { comic: comicId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt'],
+            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt','comic'],
         }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
             .skip(skip).limit(limit)
 
