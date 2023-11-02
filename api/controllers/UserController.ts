@@ -589,7 +589,7 @@ module.exports = {
         if (!createdComment) throw new AppError(400, 'Cannot send comment. Please try again.', 400)
 
         const incComicNumCommentPromise = handleIncNumPromise(comic, 'comic', 1, 'numOfComment')
-        const incChapterNumCommentPromise = handleIncNumPromise(chapter, 'chapter', 1, 'numOfComment')
+        const incChapterNumCommentPromise = chapter ? handleIncNumPromise(chapter, 'chapter', 1, 'numOfComment') : null
         const incCommentNumCommentPromise = handleIncNumPromise(comment.id, 'comment', 1, 'numOfComment')
         Promise.all([incChapterNumCommentPromise, incComicNumCommentPromise, incCommentNumCommentPromise])
 
@@ -669,7 +669,7 @@ module.exports = {
         const getUserPromise = User.findOne({ where: { id: userId }, select: ['likeMyComments'] })
         const getListCommentedPromise = Comment.find({
             where: { sender: userId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
-            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike','createdAt'],
+            select: ['senderInfo', 'content', 'numOfComment', 'numOfLike','createdAt','comic'],
         }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
             .skip(skip).limit(limit)
         const [user, listComment = []] = await Promise.all([
