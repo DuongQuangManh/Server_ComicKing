@@ -238,8 +238,8 @@ module.exports = {
 
     // api/user/chapter/getListComment
     getListComment: tryCatch(async (req, res) => {
-        const { userId, comicId, chapterId, skip = 0, limit = 15, sort = 'hot' } = req.body
-        if (typeof (comicId) != 'string' || typeof (chapterId) != 'string')
+        const { userId, comicId, chapterIndex, skip = 0, limit = 15, sort = 'hot' } = req.body
+        if (typeof (comicId) != 'string' || typeof (chapterIndex) != 'number')
             throw new AppError(400, 'Bad request', 400)
 
         let getUserPromise = null
@@ -249,7 +249,7 @@ module.exports = {
             getInteractComicPromise = InteractComic.findOne({ where: { user: userId, comic: comicId } })
         }
         const getListCommentPromise = Comment.find({
-            where: { chapterId: chapterId, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
+            where: { chapterIndex: chapterIndex, status: { '!=': constants.COMMON_STATUS.IN_ACTIVE } },
             select: ['senderInfo',  'content', 'numOfComment', 'numOfLike', 'sender', 'createdAt'],
         }).sort(sort == 'hot' ? [{ numOfComment: 'DESC' }, { numOfLike: 'DESC' }] : 'createdAt DESC')
             .skip(skip).limit(limit)
