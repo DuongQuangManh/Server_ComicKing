@@ -154,6 +154,8 @@ module.exports = {
                 'gender', 'avatarFrame', 'vipPoint', 'levelPoint'
             ]
         })
+        if (!checkUser) throw new AppError(400, 'User is not exists in system.', 400)
+        
         const { avatarTitle, avatarFrame } = checkUser
         let arrayId = []
         if (avatarFrame) arrayId.push(avatarFrame)

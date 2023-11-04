@@ -176,5 +176,12 @@ module.exports.routes = {
   // comment
   'POST /api/user/findComment': 'CommentController.clientFind',
   'POST /api/user/detailComment': 'CommentController.clientDetail',
-  'POST /api/user/comment/getListComment' : 'CommentController.getListComment'
+  'POST /api/user/comment/getListComment' : 'CommentController.getListComment',
+
+  //rank
+  'POST /api/user/getRankUserLevel': 'RankController.getRankUserLevel',
+  'POST /api/user/getRankHotComic': 'RankController.getRankHotComic',
+  'POST /api/user/getRankNewComic': 'RankController.getRankNewComic',
+  'POST /api/user/getRankDoneComic': 'RankController.getRankDoneComic',
+  'POST /api/user/getRankUserPurchase': 'RankController.getRankUserPurchase',
 };
