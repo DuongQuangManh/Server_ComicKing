@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb'
+import { constants } from '../constants/constants'
 declare const sails: any
 
 export const handleIncNumPromise = (listId: string | string[], collection: string, incNum: number, field: string) => {
@@ -25,4 +26,15 @@ export const deleteFasyField = (object: any) => {
         }
     }
     return object
+}
+
+export const getDateRangeByTimeline = (timeline: string) => {
+    const now = new Date()
+    switch (timeline) {
+        case constants.TIME_LINE.MONTH:
+            return [now, new Date(now.getTime() - 1000 * 60 * 60 * 24 * 30)]
+        case constants.TIME_LINE.WEEK:
+        default:
+            return [now, new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7)]
+    }
 }
