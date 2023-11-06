@@ -8,121 +8,160 @@
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
 import tryCatch from "../utils/tryCatch";
-import { ObjectId } from 'mongodb'
+import { ObjectId } from "mongodb";
+import moment from "moment";
+import { helper } from "../utils/helper";
 
-declare const sails: any
-declare const Category: any
+declare const sails: any;
+declare const Category: any;
 
 module.exports = {
+  clientFind: tryCatch(async (req, res) => {
+    const listCategory = await Category.find({
+      where: {
+        status: constants.COMMON_STATUS.ACTIVE,
+      },
+    });
 
-    clientFind: tryCatch(async (req, res) => {
-        const listCategory = await Category.find({
-            where: {
-                status: constants.COMMON_STATUS.ACTIVE
-            },
-        })
+    return res.status(200).json({
+      message: "Success",
+      err: 200,
+      data: listCategory,
+    });
+  }),
 
-        return res.status(200).json({
-            message: 'Success', err: 200,
-            data: listCategory,
-        })
-    }),
+  adminFind: tryCatch(async (req, res) => {
+    const { limit = 10, skip = 0 } = req.body;
 
-    adminFind: tryCatch(async (req, res) => {
-        const { limit = 10, skip = 0 } = req.body
+    const findOption = {
+      limit,
+      skip,
+    };
 
-        const findOption = {
-            limit, skip
-        }
+    const total = await Category.count({});
+    const categories = await Category.find({
+      select: ["title", "description", "numOfComic", "status", "createdAt"],
+      ...findOption,
+    }).sort("createdAt desc");
 
-        const total = await Category.count({})
-        const categories = await Category.find({
-            select: ['title', 'description', 'numOfComic', 'status', 'createdAt'],
-            ...findOption
-        })
+    for (let category of categories) {
+      category.createdAt = helper.convertToStringDate(category.createdAt);
+    }
 
-        return res.status(200).json({
-            message: 'Find Success',
-            err: 200,
-            data: categories,
-            total,
-            ...findOption
-        })
-    }),
+    return res.status(200).json({
+      message: "Find Success",
+      err: 200,
+      data: categories,
+      total,
+      ...findOption,
+    });
+  }),
 
-    add: tryCatch(async (req, res) => {
+  add: tryCatch(async (req, res) => {
+    const body = req.body;
+    const category = await Category.create(body).fetch();
 
-        const body = req.body
+    return res.status(200).json({
+      message: "Add success",
+      err: 200,
+      data: category,
+    });
+  }),
 
-        const category = await Category.createEach(body).fetch()
+  edit: tryCatch(async (req, res) => {
+    const { id, title, description, status, numOfComic } = req.body;
 
-        return res.status(200).json({
-            message: 'Add success',
-            err: 200,
-            data: category
-        })
-    }),
+    const category = await Category.updateOne({ id }).set({
+      title,
+      description,
+      status,
+      numOfComic,
+    });
 
-    edit: tryCatch(async (req, res) => {
+    return res.status(200).json({
+      message: "Update success",
+      err: 200,
+      data: category,
+    });
+  }),
 
-        const body = req.body
+  getListComic: tryCatch(async (req, res) => {
+    const { categoryId, skip = 0, limit = 15, sort = "hot" } = req.body;
+    if (typeof categoryId != "string")
+      throw new AppError(400, "Bad Request", 400);
 
-        const category = await Category.createEach(body).fetch()
+    const db = sails.getDatastore().manager;
+    const listComic = await db
+      .collection("comic")
+      .aggregate([
+        {
+          $lookup: {
+            from: "comiccategory",
+            localField: "_id",
+            foreignField: "comic",
+            as: "categories",
+          },
+        },
+        {
+          $match: { "categories.category": ObjectId(categoryId) },
+        },
+        {
+          $sort:
+            sort == "hot"
+              ? { numOfView: -1, numOfLike: -1 }
+              : { createdAt: -1 },
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $project: {
+            id: "$_id",
+            name: 1,
+            image: 1,
+            description: 1,
+            numOfComment: 1,
+            numOfLike: 1,
+            numOfChapter: 1,
+            numOfView: 1,
+            createdAt: 1,
+            updatedChapterAt: 1,
+          },
+        },
+      ])
+      .toArray();
 
-        return res.status(200).json({
-            message: 'Add success',
-            err: 200,
-            data: category
-        })
-    }),
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listComic,
+      skip,
+      limit,
+    });
+  }),
 
-    getListComic: tryCatch(async (req, res) => {
-        const { categoryId, skip = 0, limit = 15, sort = 'hot' } = req.body
-        if (typeof (categoryId) != 'string') throw new AppError(400, 'Bad Request', 400)
+  detail: tryCatch(async (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+      throw new AppError(400, "Bad Request", 400);
+    }
 
-        const db = sails.getDatastore().manager
-        const listComic = await db.collection('comic').aggregate([
-            {
-                $lookup: {
-                    from: 'comiccategory',
-                    localField: '_id',
-                    foreignField: 'comic',
-                    as: 'categories'
-                }
-            },
-            {
-                $match: { "categories.category": ObjectId(categoryId) }
-            },
-            {
-                $sort: sort == 'hot' ? { numOfView: -1, numOfLike: -1 } : { createdAt: -1 }
-            },
-            {
-                $skip: skip
-            },
-            {
-                $limit: limit
-            },
-            {
-                $project: {
-                    id: '$_id',
-                    name: 1,
-                    image: 1,
-                    description: 1,
-                    numOfComment: 1,
-                    numOfLike: 1,
-                    numOfChapter: 1,
-                    numOfView: 1,
-                    createdAt: 1,
-                    updatedChapterAt: 1,
-                }
-            }
-        ]).toArray()
+    let category = await Category.findOne({ id });
+    delete category.password;
+    category.createdAt = moment(category.createdAt).format(
+      constants.DATE_TIME_FORMAT
+    );
+    category.updatedAt = moment(category.updatedAt).format(
+      constants.DATE_TIME_FORMAT
+    );
 
-        return res.status(200).json({
-            err: 200, message: 'Success',
-            data: listComic, skip, limit
-        })
-    })
-
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: category,
+    });
+  }),
 };
-
