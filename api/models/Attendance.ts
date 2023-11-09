@@ -11,6 +11,11 @@ module.exports = {
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
+    label: {
+      type: "string",
+      required: true,
+    },
+
     index: {
       type: "number",
       required: true,
@@ -26,6 +31,8 @@ module.exports = {
       type: "number",
       defaultsTo: 0,
     },
+
+    priority: { type: "number", defaultsTo: 0 },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
