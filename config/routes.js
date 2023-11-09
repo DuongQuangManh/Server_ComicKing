@@ -36,12 +36,6 @@ module.exports.routes = {
     ADMIN
   */
 
-  // special list
-  'POST /api/admin/addSpecial': 'SpecialListController.add',
-  'POST /api/admin/editSpecial': 'SpecialListController.edit',
-  'POST /api/admin/find': 'SpecialListController.find',
-  'POST /api/admin/detail': 'SpecialListController.detail',
-
   // user
   'POST /api/admin/addUser': 'UserController.add',
   'POST /api/admin/editUser': 'UserController.edit',
@@ -103,6 +97,12 @@ module.exports.routes = {
   'POST /api/admin/detailComment': 'CommentController.adminDetail',
   'POST /api/admin/findComment': 'CommentController.adminFind',
   'POST /api/admin/editComment': 'CommentController.edit',
+
+  // attendance
+  'POST /api/admin/detailAttendance': 'AttendanceController.adminDetail',
+  'POST /api/admin/findAttendance': 'AttendanceController.adminFind',
+  'POST /api/admin/editAttendance': 'AttendanceController.edit',
+  'POST /api/admin/addAttendance': 'AttendanceController.add',
 
   /**
     CLIENT 
@@ -185,4 +185,7 @@ module.exports.routes = {
   'POST /api/user/getRankNewComic': 'RankController.getRankNewComic',
   'POST /api/user/getRankDoneComic': 'RankController.getRankDoneComic',
   'POST /api/user/getRankUserPurchase': 'RankController.getRankUserPurchase',
+
+  // attendance
+  'POST /api/user/findAttendance': 'AttendanceController.clientFind'
 };

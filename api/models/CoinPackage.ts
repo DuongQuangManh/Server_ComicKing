@@ -1,52 +1,34 @@
 /**
- * SpecialList.ts
+ * VipPackage.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
-import { constants } from "../constants/constants";
-
 module.exports = {
-
   attributes: {
-
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-    title: { type: 'string', required: true },
+    price: { type: "number", required: true },
 
-    description: { type: 'string', defaultsTo: '' },
+    coin: { type: "number", required: true },
 
-    displayType: { type: 'string', defaultsTo: 'vertical-rect' },
+    extraExp: { type: "number", required: true },
 
-    limit: { type: 'number', defaultsTo: 6 },
+    currency: { type: "string", defaultsTo: "VNĐ" },
 
-    status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
+    icon: { type: "string" },
 
-    // canMore: { type: 'boolean', defaultsTo: false },
-
-    data: {
-      type: 'json',
-      columnType: 'object',
-      defaultsTo: {
-        canMore: false,
-        api: '',
-        body: {}
-      }
-    }
+    suggest: { type: "boolean", defaultsTo: false },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
 
-
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-
   },
-
 };
-
