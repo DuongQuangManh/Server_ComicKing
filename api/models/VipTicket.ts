@@ -5,6 +5,8 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
+import { constants } from "../constants/constants";
+
 module.exports = {
   attributes: {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
@@ -23,11 +25,15 @@ module.exports = {
 
     coinExtra: { type: "number", defaultsTo: 0 },
 
-    expEtra: { type: "number", defaultsTo: 0 },
+    expExtra: { type: "number", defaultsTo: 0 },
 
-    details: { type: "json", columnType: "array" },
+    details: { type: "json", columnType: "array", defaultsTo: [] },
 
     currency: { type: "string", defaultsTo: "VNĐ" },
+
+    status: { type: "string", defaultsTo: constants.COMMON_STATUS.ACTIVE },
+
+    image: { type: "string", defaultsTo: "" },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
