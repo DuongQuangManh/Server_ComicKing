@@ -141,6 +141,7 @@ module.exports.routes = {
   'POST /api/user/toggleLikeComment': 'UserController.toggleLikeComment',
   'POST /api/user/getListCommented': 'UserController.getListCommented',
   'POST /api/user/findCategory': 'CategoryController.clientFind',
+  'POST /api/user/dailyAttendance': 'UserAttendanceController.dailyAttendance',
 
   // category
   'POST /api/user/category/getListComic': 'CategoryController.getListComic',

@@ -5,11 +5,16 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+import moment from "moment";
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
 import tryCatch from "../utils/tryCatch";
+import { getStartOfDayTimestamp } from "../services";
 
 declare const Attendance: any;
+declare const UserWallet: any;
+declare const User: any;
+declare const UserAttendance: any;
 
 module.exports = {
   adminFind: tryCatch(async (req, res) => {}),
@@ -95,9 +100,69 @@ module.exports = {
 
   // api/user/findAttendance
   clientFind: tryCatch(async (req, res) => {
-    const listAttendance = await Attendance.find({
+    const { userId } = req.body;
+
+    const nth = moment().day();
+    if (!constants.ATTENDANCE[nth])
+      throw new AppError(
+        400,
+        "Can't dayily attendance now. Pls try again",
+        400
+      );
+
+    const getUserPromise = userId
+      ? User.findOne({ where: { id: userId }, select: [] })
+      : null;
+    const getUserAttendancePromise = userId
+      ? UserAttendance.findOne({
+          where: { user: userId },
+          select: ["startWeekTime", "attendances"],
+        })
+      : null;
+    const getListAttendancePromise = Attendance.find({
       select: ["label", "index", "coinExtra", "expExtra", "priority"],
-    }).sort("priority desc");
+    }).sort([{ priority: "DESC" }, { createdAt: "ASC" }]);
+
+    let [user, userAttendance, listAttendance] = await Promise.all([
+      getUserPromise,
+      getUserAttendancePromise,
+      getListAttendancePromise,
+    ]);
+    if (!userAttendance && user) {
+      userAttendance = await UserAttendance.create({ user: userId }).fetch();
+    }
+
+    if (userAttendance?.attendances) {
+      const { startWeekTime = 0, attendances } = userAttendance;
+      const startThisWeekTime = getStartOfDayTimestamp(1);
+      let isReset = false;
+      if (startThisWeekTime - startWeekTime >= 1000 * 60 * 60 * 24 * 7) {
+        await UserAttendance.updateOne({ id: userAttendance.id }).set({
+          startWeekTime: startThisWeekTime,
+          attendances: [],
+        });
+        isReset = true;
+      }
+      listAttendance.forEach((attendance) => {
+        if (attendance.index != nth) {
+          if (attendance.index > nth || attendance.index == 0) {
+            attendance.canAttendance = false;
+          } else {
+            attendance.isExpired = true;
+          }
+        } else {
+          attendance.canAttendance = true;
+        }
+        if (isReset) {
+          attendance.isAttened = false;
+        } else {
+          if (attendances.includes(attendance.index)) {
+            attendance.isAttened = true;
+            attendance.canAttendance = false;
+          }
+        }
+      });
+    }
 
     return res.status(300).json({
       message: "Success",

@@ -1,11 +1,9 @@
 /**
- * UserWallet.js
+ * UserAttendance.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
-
-import { constants } from "../constants/constants";
 
 module.exports = {
   attributes: {
@@ -15,18 +13,15 @@ module.exports = {
 
     user: { model: "user" },
 
-    coin: { type: "number", defaultsTo: 0 },
+    startWeekTime: {
+      type: "number",
+      defaultsTo: 0,
+    },
 
-    exp: { type: "number", defaultsTo: 0 },
-
-    ticket: {
+    attendances: {
       type: "json",
-      columnType: "object",
-      defaultsTo: {
-        vipTicket: "",
-        expiredAt: 0,
-        status: constants.TICKET_STATUS.UNREGISTER,
-      },
+      columnType: "array",
+      defaultsTo: [],
     },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
