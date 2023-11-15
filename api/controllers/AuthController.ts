@@ -35,10 +35,11 @@ import {
 import { generateUsername } from "unique-username-generator";
 import { v4 as uuidV4 } from "uuid";
 
-declare var User: any;
-declare var Otp: any;
-declare var OtpVerification: any;
-declare var Decorate: any;
+declare const User: any;
+declare const Otp: any;
+declare const OtpVerification: any;
+declare const Decorate: any;
+declare const UserWallet: any;
 
 module.exports = {
   register: tryCatch(async (req, res) => {
@@ -127,7 +128,13 @@ module.exports = {
     const updateBody: any = {};
     if (avatarFrame?.[0]) updateBody.avatarFrame = avatarFrame[0].id;
     if (avatarTitle?.[0]) updateBody.avatarTitle = avatarTitle[0].id;
-    User.updateOne({ id: createdUser.id }).set(updateBody);
+    const updatedUserPromise = User.updateOne({ id: createdUser.id }).set(
+      updateBody
+    );
+    const createdUserWalletPromise = UserWallet.create({
+      user: createdUser.id,
+    });
+    Promise.all([updatedUserPromise, createdUserWalletPromise]);
 
     const accessToken = generateToken({
       email: createdUser.email,
@@ -278,6 +285,12 @@ module.exports = {
           "Không thể khởi tạo tài khoản vui lòng thử lại.",
           400
         );
+
+      Promise.all([
+        UserWallet.create({
+          user: checkUser.id,
+        }),
+      ]);
     }
 
     const accessToken = generateToken({
@@ -334,6 +347,12 @@ module.exports = {
           "Không thể khởi tạo tài khoản vui lòng thử lại.",
           400
         );
+
+      Promise.all([
+        UserWallet.create({
+          user: checkUser.id,
+        }),
+      ]);
     }
 
     const accessToken = generateToken({

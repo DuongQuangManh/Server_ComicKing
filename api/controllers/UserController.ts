@@ -24,6 +24,7 @@ declare const Author: any;
 declare const InteractComic: any;
 declare const Decorate: any;
 declare const Comment: any;
+declare const UserWallet: any;
 
 module.exports = {
   find: tryCatch(async (req, res) => {
@@ -135,6 +136,12 @@ module.exports = {
     if (!createdUser) {
       throw new AppError(400, "Không thể cập nhật user vui lòng thử lại", 400);
     }
+
+    Promise.all([
+      UserWallet.create({
+        user: checkUser.id,
+      }),
+    ]);
 
     return res.status(200).json({ err: 200, message: "Success" });
   }),

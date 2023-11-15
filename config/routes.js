@@ -104,6 +104,18 @@ module.exports.routes = {
   'POST /api/admin/editAttendance': 'AttendanceController.edit',
   'POST /api/admin/addAttendance': 'AttendanceController.add',
 
+  // coin package
+  'POST /api/admin/detailCoinPackage': 'CoinPackageController.adminDetail',
+  'POST /api/admin/findCoinPackage': 'CoinPackageController.adminFind',
+  'POST /api/admin/editCoinPackage': 'CoinPackageController.edit',
+  'POST /api/admin/addCoinPackage': 'CoinPackageController.add',
+
+  // vip ticket
+  'POST /api/admin/detailVipTicket': 'VipTicketController.adminDetail',
+  'POST /api/admin/findVipTicket': 'VipTicketController.adminFind',
+  'POST /api/admin/editVipTicket': 'VipTicketController.edit',
+  'POST /api/admin/addVipTicket': 'VipTicketController.add',
+
   /**
     CLIENT 
   **/
@@ -141,6 +153,7 @@ module.exports.routes = {
   'POST /api/user/toggleLikeComment': 'UserController.toggleLikeComment',
   'POST /api/user/getListCommented': 'UserController.getListCommented',
   'POST /api/user/findCategory': 'CategoryController.clientFind',
+  'POST /api/user/dailyAttendance': 'UserAttendanceController.dailyAttendance',
 
   // category
   'POST /api/user/category/getListComic': 'CategoryController.getListComic',
@@ -187,5 +200,11 @@ module.exports.routes = {
   'POST /api/user/getRankUserPurchase': 'RankController.getRankUserPurchase',
 
   // attendance
-  'POST /api/user/findAttendance': 'AttendanceController.clientFind'
+  'POST /api/user/findAttendance': 'AttendanceController.clientFind',
+
+  // coin package
+  'POST /api/user/findCoinPackage': 'CoinPackageController.clientFind',
+
+  // vip ticket
+  'POST /api/user/findVipTicket': 'VipTicketController.clientFind',
 };
