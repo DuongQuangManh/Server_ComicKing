@@ -36,15 +36,15 @@ module.exports = {
 
     uId: { type: "string", required: true },
 
-    level: { type: "number", defaultsTo: 0 },
+    // level: { type: "number", defaultsTo: 0 },
 
-    levelPoint: { type: "number", defaultsTo: 0 },
+    // levelPoint: { type: "number", defaultsTo: 0 },
 
-    vip: { type: "number", defaultsTo: 0 },
+    // vip: { type: "number", defaultsTo: 0 },
 
-    vipPoint: { type: "number", defaultsTo: 0 },
+    // vipPoint: { type: "number", defaultsTo: 0 },
 
-    coin: { type: "number", defaultsTo: 0 },
+    // coin: { type: "number", defaultsTo: 0 },
 
     avatarFrame: { model: "Decorate" },
 

@@ -6,39 +6,43 @@
  */
 
 module.exports = {
-
   attributes: {
-
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-    title: { type: 'string', required: true },
+    title: { type: "string", required: true },
 
-    description: { type: 'string' },
+    description: { type: "string" },
 
-    howToGet: { type: 'string', isIn: ['event', 'vip', 'level'], defaultsTo: 'level' },
+    howToGet: {
+      type: "string",
+      isIn: ["event", "vip", "level"],
+      defaultsTo: "level",
+    },
 
-    type: { type: 'string', isIn: ['event', 'vip', 'level'], defaultsTo: 'level' },
+    type: {
+      type: "string",
+      isIn: ["event", "vip", "level"],
+      defaultsTo: "level",
+    },
 
-    action: { type: 'string' },
+    action: { type: "string" },
 
-    image: { type: 'string', required: true },
+    image: { type: "string", required: true },
 
-    needPoint: { type: 'number', required: true },
+    needPoint: { type: "number", required: true },
 
-    tag: { type: 'string', isIn: ['title', 'avatar'], defaultsTo: 'avatar' }
+    tag: { type: "string", isIn: ["title", "avatar"], defaultsTo: "avatar" },
+
+    needVipTicket: { model: "vipticket" },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
 
-
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-
   },
-
 };
-

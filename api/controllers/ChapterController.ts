@@ -285,17 +285,17 @@ module.exports = {
       1,
       "numOfView"
     );
-    const incrementLevelPointPromise = handleIncNumPromise(
-      userId,
-      "user",
-      1,
-      "levelPoint"
-    );
+    // const incrementLevelPointPromise = handleIncNumPromise(
+    //   userId,
+    //   "user",
+    //   1,
+    //   "levelPoint"
+    // );
     Promise.all([
       incrementChapterViewPromise,
       incrementComicViewPromise,
       createInteractComicPromise,
-      incrementLevelPointPromise,
+      // incrementLevelPointPromise,
     ]);
 
     return res
