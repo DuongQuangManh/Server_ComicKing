@@ -223,8 +223,8 @@ module.exports = {
         "avatarTitle",
         "gender",
         "avatarFrame",
-        "vipPoint",
-        "levelPoint",
+        // "vipPoint",
+        // "levelPoint",
       ],
     });
     if (!checkUser)

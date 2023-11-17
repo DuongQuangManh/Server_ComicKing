@@ -127,7 +127,7 @@ module.exports = {
       where: {
         status: constants.COMMON_STATUS.ACTIVE,
       },
-      select: ["price", "exp", "coin", "currency", "image"],
+      select: ["price", "exp", "coin", "currency", "image", "suggest"],
       limit,
       skip,
     }).sort("priority DESC");

@@ -154,6 +154,7 @@ module.exports.routes = {
   'POST /api/user/getListCommented': 'UserController.getListCommented',
   'POST /api/user/findCategory': 'CategoryController.clientFind',
   'POST /api/user/dailyAttendance': 'UserAttendanceController.dailyAttendance',
+  'POST /api/user/getWalletInfo': 'UserWalletController.getWalletInfo',
 
   // category
   'POST /api/user/category/getListComic': 'CategoryController.getListComic',
@@ -202,9 +203,9 @@ module.exports.routes = {
   // attendance
   'POST /api/user/findAttendance': 'AttendanceController.clientFind',
 
-  // coin package
   'POST /api/user/findCoinPackage': 'CoinPackageController.clientFind',
-
-  // vip ticket
+  'POST /api/user/createCoinPackageTransaction': 'TransactionController.createCoinPackageTransaction',
   'POST /api/user/findVipTicket': 'VipTicketController.clientFind',
+  'POST /api/user/createVipTicketTransaction': 'TransactionController.createVipTicketTransaction',
+  'POST /api/user/requestEndTransaction': 'TransactionController.requestEndTransaction'
 };

@@ -30,6 +30,13 @@ export const constants = {
     ACTIVE: "ACTIVE",
     UNREGISTER: "UNREGISTER",
   },
+  TRANSACTION_STATUS: {
+    EXPIRED: "EXPIRED",
+    SUCCESS: "SUCCESS",
+    FAILED: "FAILED",
+    CANCELED: "CANCELED",
+    INPROCESS: "INPROCESS",
+  },
   ATTENDANCE: {
     0: "Chủ Nhật",
     1: "Thứ 2",

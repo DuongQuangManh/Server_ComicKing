@@ -104,6 +104,7 @@ module.exports = {
       coinExtra,
       expExtra,
       image,
+      name,
       status = constants.COMMON_STATUS.ACTIVE,
     } = req.body;
 
@@ -114,7 +115,8 @@ module.exports = {
       typeof expExtra != "number" ||
       typeof expExtraDaily != "number" ||
       typeof coinExtraDaily != "number" ||
-      typeof priority != "number"
+      typeof priority != "number" ||
+      typeof name != "string"
     )
       throw new AppError(400, "Bad Request", 400);
 
@@ -158,6 +160,7 @@ module.exports = {
         "coinExtra",
         "currency",
         "image",
+        "name",
       ],
       limit,
       skip,

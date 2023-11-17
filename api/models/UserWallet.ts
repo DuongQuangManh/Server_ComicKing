@@ -24,6 +24,8 @@ module.exports = {
       columnType: "object",
       defaultsTo: {
         vipTicket: "",
+        coinExtraDaily: 0,
+        expExtraDaily: 0,
         expiredAt: 0,
         status: constants.TICKET_STATUS.UNREGISTER,
       },
