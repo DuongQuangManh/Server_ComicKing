@@ -10,6 +10,7 @@ import { AppError } from "../custom/customClass";
 import tryCatch from "../utils/tryCatch";
 
 declare const VipTicket: any;
+declare const Decorate: any;
 
 module.exports = {
   adminFind: tryCatch(async (req, res) => {
@@ -133,6 +134,7 @@ module.exports = {
       priority,
       status,
       image,
+      name,
     }).fetch();
 
     if (!createdVipTicket)
@@ -174,6 +176,45 @@ module.exports = {
       err: 200,
       message: "Success",
       data: listVipTicket,
+    });
+  }),
+
+  clientDetail: tryCatch(async (req, res) => {
+    const { vipTicketId } = req.body;
+    if (typeof vipTicketId != "string")
+      throw new AppError(400, "Bad Request", 400);
+
+    const getVipTicketPromise = VipTicket.findOne({ id: vipTicketId });
+    const getListAvatarFramePromise = Decorate.find({
+      where: {
+        tag: "avatar",
+        needVipTicket: vipTicketId,
+      },
+    });
+    const getListAvatarTitlePromise = Decorate.find({
+      where: {
+        tag: "title",
+        needVipTicket: vipTicketId,
+      },
+    });
+
+    const [vipTicket, listAvatarFrame, listAvatarTitle] = await Promise.all([
+      getVipTicketPromise,
+      getListAvatarFramePromise,
+      getListAvatarTitlePromise,
+    ]);
+
+    if (!vipTicket) throw new AppError(400, "Invalid Vip Ticket.", 400);
+    vipTicket.duration = vipTicket.duration / (1000 * 60 * 60 * 24);
+
+    return res.status(200).json({
+      message: "Success",
+      err: 200,
+      data: {
+        vipTicket,
+        listAvatarFrame,
+        listAvatarTitle,
+      },
     });
   }),
 };

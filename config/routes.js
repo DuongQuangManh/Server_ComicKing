@@ -206,6 +206,7 @@ module.exports.routes = {
   'POST /api/user/findCoinPackage': 'CoinPackageController.clientFind',
   'POST /api/user/createCoinPackageTransaction': 'TransactionController.createCoinPackageTransaction',
   'POST /api/user/findVipTicket': 'VipTicketController.clientFind',
+  'POST /api/user/detailVipTicket': 'VipTicketController.clientDetail',
   'POST /api/user/createVipTicketTransaction': 'TransactionController.createVipTicketTransaction',
   'POST /api/user/requestEndTransaction': 'TransactionController.requestEndTransaction'
 };

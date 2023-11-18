@@ -125,7 +125,7 @@ module.exports = {
     const detailData = {
       ...checkVipTicket,
       tag: "ticket",
-      duration: checkVipTicket.duration * 1000 * 60 * 60 * 24,
+      duration: checkVipTicket.duration,
     };
 
     const createdTransaction = await Transaction.create({
@@ -190,19 +190,21 @@ module.exports = {
         ticket: {},
       };
       const { detail } = checkTransaction;
-      updateUserWalletBody.coin = userWallet.coin + detail.coin;
-      updateUserWalletBody.exp = userWallet.exp + detail.exp;
+      updateUserWalletBody.coin =
+        userWallet.coin + (detail.coin || detail.coinExtra);
+      updateUserWalletBody.exp =
+        userWallet.exp + (detail.exp || detail.expExtra);
       if (detail.tag == "ticket") {
         updateUserWalletBody.ticket.vipTicket = detail.id;
         updateUserWalletBody.ticket.coinExtraDaily = detail.coinExtraDaily;
         updateUserWalletBody.ticket.expExtraDaily = detail.expExtraDaily;
         updateUserWalletBody.ticket.expiredAt = Date.now() + detail.duration;
+        console.log("Duration", detail.duration);
       }
       await UserWallet.updateOne({ id: userWallet.id }).set({
         ...updateUserWalletBody,
       });
     }
-    console.log(checkTransaction);
     return res.status(200).json({
       err: 200,
       message: "Success",

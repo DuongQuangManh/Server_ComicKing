@@ -35,7 +35,7 @@ module.exports = {
 
     tag: { type: "string", isIn: ["title", "avatar"], defaultsTo: "avatar" },
 
-    needVipTicket: { model: "vipticket" },
+    needVipTicket: { type: "string", defaultsTo: "" },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
