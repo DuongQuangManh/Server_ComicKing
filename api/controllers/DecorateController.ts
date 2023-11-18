@@ -39,11 +39,11 @@ module.exports = {
   adminDetail: tryCatch(async (req, res) => {}),
 
   clientFind: tryCatch(async (req, res) => {
-    const { tag = "avatar", userId } = req.body;
+    const { tag = "avatar", userId, type = "level" } = req.body;
     if (!userId) throw new AppError(400, "Bad Request", 400);
 
     const getUserWalletPromise = UserWallet.findOne({ user: userId });
-    const getListDecoratePromise = Decorate.find({ where: { tag } }).sort(
+    const getListDecoratePromise = Decorate.find({ where: { tag, type } }).sort(
       "needPoint"
     );
 
@@ -57,21 +57,35 @@ module.exports = {
 
     let haveCount = 0;
     const newListDecorate = listDecorate.map((item: any) => {
-      if (item.type == "vip") {
+      if (item.needVipTicket) {
+        if (userWallet.ticket?.vipTicket?.id == item.needVipTicket) {
+          haveCount++;
+          item.lock = false;
+        } else {
+          item.isLock = true;
+        }
+      } else {
         if (item.needPoint > userWallet.exp) item.isLock = true;
         else {
           haveCount++;
           item.isLock = false;
         }
-      } else if (item.type == "level") {
-        if (item.needPoint > userWallet.exp) item.isLock = true;
-        else {
-          haveCount++;
-          item.isLock = false;
-        }
-      } else if (item.type == "event") {
-        item.isLock = true;
       }
+      //   if (item.type == "vip") {
+      //     if (item.needPoint > userWallet.exp) item.isLock = true;
+      //     else {
+      //       haveCount++;
+      //       item.isLock = false;
+      //     }
+      //   } else if (item.type == "level") {
+      //     if (item.needPoint > userWallet.exp) item.isLock = true;
+      //     else {
+      //       haveCount++;
+      //       item.isLock = false;
+      //     }
+      //   } else if (item.type == "event") {
+      //     item.isLock = true;
+      //   }
       return item;
     });
 

@@ -113,6 +113,9 @@ module.exports = {
     const getUserPromise = userId
       ? User.findOne({ where: { id: userId }, select: [] })
       : null;
+    const getUserWalletPromise = userId
+      ? UserWallet.findOne({ where: { user: userId } })
+      : null;
     const getUserAttendancePromise = userId
       ? UserAttendance.findOne({
           where: { user: userId },
@@ -123,14 +126,17 @@ module.exports = {
       select: ["label", "index", "coinExtra", "expExtra", "priority"],
     }).sort([{ priority: "DESC" }, { createdAt: "ASC" }]);
 
-    let [user, userAttendance, listAttendance] = await Promise.all([
+    let [user, userAttendance, listAttendance, userWallet] = await Promise.all([
       getUserPromise,
       getUserAttendancePromise,
       getListAttendancePromise,
+      getUserWalletPromise,
     ]);
     if (!userAttendance && user) {
       userAttendance = await UserAttendance.create({ user: userId }).fetch();
     }
+    const coinExtraDaily = userWallet?.ticket?.coinExtraDaily || 0;
+    const expExtraDaily = userWallet?.ticket?.expExtraDaily || 0;
 
     if (userAttendance?.attendances) {
       const { startWeekTime = 0, attendances } = userAttendance;
@@ -144,6 +150,8 @@ module.exports = {
         isReset = true;
       }
       listAttendance.forEach((attendance) => {
+        attendance.coinExtraDaily = coinExtraDaily;
+        attendance.expExtraDaily = expExtraDaily;
         if (attendance.index != nth) {
           if (attendance.index > nth || attendance.index == 0) {
             attendance.canAttendance = false;
@@ -152,6 +160,7 @@ module.exports = {
           }
         } else {
           attendance.canAttendance = true;
+          attendance.isCurrentDay = true;
         }
         if (isReset) {
           attendance.isAttened = false;

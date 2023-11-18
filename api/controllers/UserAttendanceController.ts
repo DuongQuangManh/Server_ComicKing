@@ -13,7 +13,7 @@ import { getStartOfDayTimestamp } from "../services";
 
 declare const UserWallet: any;
 declare const Attendance: any;
-declare const VipTicket: any;
+// declare const VipTicket: any;
 declare const UserAttendance: any;
 
 module.exports = {
@@ -41,16 +41,16 @@ module.exports = {
 
     const getAttendancePromise = Attendance.findOne({ index: nth });
     const getUserAttendancePromise = UserAttendance.findOne({ user: userId });
-    const getVipTicketPromise = checkUserWallet.ticket?.vipTicket
-      ? VipTicket.findOne({
-          where: { id: checkUserWallet.ticket.vipTicket },
-          select: ["extraCoinDaily", "expExtra"],
-        })
-      : null;
-    const [attendance, userAttendance, vipTicket] = await Promise.all([
+    // const getVipTicketPromise = checkUserWallet.ticket?.vipTicket
+    //   ? VipTicket.findOne({
+    //       where: { id: checkUserWallet.ticket.vipTicket },
+    //       select: ["extraCoinDaily", "expExtra"],
+    //     })
+    //   : null;
+    const [attendance, userAttendance] = await Promise.all([
       getAttendancePromise,
       getUserAttendancePromise,
-      getVipTicketPromise,
+      // getVipTicketPromise,
     ]);
     if (!attendance)
       throw new AppError(
@@ -60,17 +60,23 @@ module.exports = {
       );
     if (!userAttendance)
       throw new AppError(400, "Your account cannot attendance.", 400);
-    if (userAttendance.attendances.includes(nth))
+    if (!checkUserWallet)
+      throw new AppError(400, "You don't have permisition to attendance.", 400);
+    if (userAttendance.attendances?.includes(nth))
       throw new AppError(400, "You already attened today.", 400);
 
-    userAttendance.attendances.push(nth);
+    userAttendance.attendances?.push(nth);
     const isExpired = Date.now() - checkUserWallet.ticket?.expiredAt > 0;
     let coinExtra =
       attendance.coinExtra +
-      (!vipTicket || isExpired ? 0 : vipTicket.coinDailyExtra);
+      (!checkUserWallet || isExpired
+        ? 0
+        : checkUserWallet.ticket?.coinExtraDaily);
     let expExtra =
       attendance.expExtra +
-      (!vipTicket || isExpired ? 0 : vipTicket.expDailyExtra);
+      (!checkUserWallet || isExpired
+        ? 0
+        : checkUserWallet.ticket?.expExtraDaily);
 
     const updateUserWalletPromise = UserWallet.updateOne({
       id: checkUserWallet.id,
@@ -84,7 +90,7 @@ module.exports = {
       attendances: userAttendance.attendances,
       startWeekTime: getStartOfDayTimestamp(1),
     });
-    Promise.all([updateUserAttendancePromise, updateUserWalletPromise]);
+    await Promise.all([updateUserAttendancePromise, updateUserWalletPromise]);
 
     return res.status(200).json({
       err: 200,
