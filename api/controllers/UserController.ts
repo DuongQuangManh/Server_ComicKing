@@ -526,8 +526,6 @@ module.exports = {
       select: [],
     });
     const [user, comic] = await Promise.all([getUserPromise, getComicPromise]);
-    console.log("user", user);
-    console.log("comic", comic);
     if (!user) throw new AppError(400, "User not exists in system.", 400);
     if (!comic) throw new AppError(400, "Comic not exists in system", 400);
 
@@ -621,28 +619,23 @@ module.exports = {
       where: { id: avatarFrameId, tag: "avatar" },
       select: ["image", "needPoint", "description", "action", "title", "type"],
     });
-    const getUserPromise = User.findOne({
-      where: { id: userId },
-      select: ["levelPoint", "vipPoint"],
-    });
-    const [avatarFrame, user] = await Promise.all([
+    const getUserWalletPromise = UserWallet.findOne({ user: userId });
+    const [avatarFrame, userWallet] = await Promise.all([
       getAvatarFramePromise,
-      getUserPromise,
+      getUserWalletPromise,
     ]);
     if (!avatarFrame)
       throw new AppError(400, "AvatarFrame not exists in system.", 400);
-    if (!user) throw new AppError(400, "User not exists in system.", 400);
+    if (!userWallet)
+      throw new AppError(400, "User wallet not exists in system.", 400);
 
     let avatarFrameRespone = null;
-    if (avatarFrame.type == "event") {
-      // do something for event Avatar Frame
-    } else if (avatarFrame.type == "vip") {
-      if (user.vipPoint >= avatarFrame.needPoint) {
+    if (avatarFrame.needVipTicket) {
+      if (userWallet.ticket?.vipTicket?.id == avatarFrame.needVipTicket) {
         avatarFrameRespone = avatarFrame;
       }
     } else {
-      // type == level
-      if (user.levelPoint >= avatarFrame.needPoint) {
+      if (userWallet.exp >= avatarFrame.needPoint) {
         avatarFrameRespone = avatarFrame;
       }
     }
@@ -653,18 +646,13 @@ module.exports = {
         400
       );
 
-    const updatedUser = await User.updateOne({ id: userId }).set({
+    const updatedUserPromise = User.updateOne({ id: userId }).set({
       avatarFrame: avatarFrameRespone.id,
     });
-    if (!updatedUser)
-      throw new AppError(
-        400,
-        "Cannot update avatar frame. Pls try againt",
-        400
-      );
-    Comment.update({ sender: userId }).set({
+    const updatedCommentPromise = Comment.update({ sender: userId }).set({
       avatarFrame: avatarFrameRespone.image,
     });
+    Promise.all([updatedUserPromise, updatedCommentPromise]);
 
     return res
       .status(200)
@@ -679,28 +667,23 @@ module.exports = {
       where: { id: avatarTitleId, tag: "title" },
       select: ["image", "needPoint", "description", "action", "title"],
     });
-    const getUserPromise = User.findOne({
-      where: { id: userId },
-      select: ["levelPoint", "vipPoint"],
-    });
-    const [avatarTitle, user] = await Promise.all([
+    const getUserWalletPromise = UserWallet.findOne({ user: userId });
+    const [avatarTitle, userWallet] = await Promise.all([
       getAvatarTitlePromise,
-      getUserPromise,
+      getUserWalletPromise,
     ]);
     if (!avatarTitle)
       throw new AppError(400, "AvatarTitle not exists in system.", 400);
-    if (!user) throw new AppError(400, "User not exists in system.", 400);
+    if (!userWallet)
+      throw new AppError(400, "User wallet not exists in system.", 400);
 
     let avatarTitleRespone = null;
-    if (avatarTitle.type == "event") {
-      // do something for event Avatar Frame
-    } else if (avatarTitle.type == "vip") {
-      if (user.vipPoint >= avatarTitle.needPoint) {
+    if (avatarTitle.needVipTicket) {
+      if (userWallet.ticket?.vipTicket?.id == avatarTitle.needVipTicket) {
         avatarTitleRespone = avatarTitle;
       }
     } else {
-      // type == level
-      if (user.levelPoint >= avatarTitle.needPoint) {
+      if (userWallet.exp >= avatarTitle.needPoint) {
         avatarTitleRespone = avatarTitle;
       }
     }
@@ -878,7 +861,6 @@ module.exports = {
     if (!sender) throw new AppError(400, "User is not exists in system", 400);
     if (!comment)
       throw new AppError(400, "Comment is not exists in system", 400);
-    console.log(comment);
     if (!comment.canContainComment)
       throw new AppError(400, "This comment cannot contain comment.", 400);
 

@@ -43,9 +43,7 @@ module.exports = {
     if (vipTicket) {
       userWallet.ticket.vipTicket = vipTicket;
     }
-    console.log(level);
     userWallet.level = level?.[0] ? level[0].index : 0;
-    console.log(userWallet);
 
     return res.status(200).json({
       err: 200,

@@ -16,14 +16,7 @@ module.exports = {
   adminFind: tryCatch(async (req, res) => {}),
 
   add: tryCatch(async (req, res) => {
-    const {
-      index,
-      point,
-      description,
-      listPrivilege = [],
-      startColor,
-      endColor,
-    } = req.body;
+    const { index, point, description, listPrivilege = [] } = req.body;
     if (isNaN(index) || index <= 0 || !point || !description)
       throw new AppError(400, "Bad Request", 400);
 
@@ -60,8 +53,6 @@ module.exports = {
       index,
       description,
       listPrivilege,
-      startColor,
-      endColor,
     }).fetch();
     const updatePreviousLevelPromise = Level.updateOne({
       index: previousIndex,
@@ -95,7 +86,7 @@ module.exports = {
     if (!listLevel)
       throw new AppError(400, "Cannot get list Level. Pls try again.", 400);
 
-    let currentLevelIndex = 0;
+    let currentLevelIndex = 1;
     let reachedMax = false;
     for (let i = 0; i < listLevel.length; i++) {
       if (userWallet.exp >= listLevel[i].point) {
@@ -103,8 +94,6 @@ module.exports = {
         if (i == listLevel.length - 1) {
           reachedMax = true;
         }
-      } else {
-        listLevel[i].needExp = listLevel[i].point - userWallet.exp;
       }
     }
 

@@ -199,7 +199,6 @@ module.exports = {
         updateUserWalletBody.ticket.coinExtraDaily = detail.coinExtraDaily;
         updateUserWalletBody.ticket.expExtraDaily = detail.expExtraDaily;
         updateUserWalletBody.ticket.expiredAt = Date.now() + detail.duration;
-        console.log("Duration", detail.duration);
       }
       await UserWallet.updateOne({ id: userWallet.id }).set({
         ...updateUserWalletBody,
