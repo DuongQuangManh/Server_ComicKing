@@ -176,4 +176,15 @@ module.exports = {
       data: listVipTicket,
     });
   }),
+  
+  clientDetail:tryCatch(async (req,res)=>{
+    const {id} = req.body;
+    if (!id) throw new AppError(400, 'Bad Request', 400)
+    const getVipTicket =await VipTicket.findOne({ where: { id: id }})
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: getVipTicket,
+    });
+  })
 };
