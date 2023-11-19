@@ -29,6 +29,8 @@ module.exports = {
 
     status: { type: "string", defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
+    uId: { type: "string", defaultsTo: "" },
+
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
