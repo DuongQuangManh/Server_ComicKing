@@ -56,8 +56,6 @@ module.exports = {
       suggest = false,
     } = req.body;
 
-    console.log(req.body);
-
     if (
       typeof price != "number" ||
       typeof coin != "number" ||

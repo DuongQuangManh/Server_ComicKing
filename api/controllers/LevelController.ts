@@ -6,6 +6,7 @@
  */
 
 import { AppError } from "../custom/customClass";
+import { helper } from "../utils/helper";
 import tryCatch from "../utils/tryCatch";
 
 declare const Level: any;
@@ -13,11 +14,43 @@ declare const User: any;
 declare const UserWallet: any;
 
 module.exports = {
-  adminFind: tryCatch(async (req, res) => {}),
+  adminFind: tryCatch(async (req, res) => {
+    const { limit = 10, skip = 0 } = req.body;
+
+    const getCountLevelPromise = Level.count({});
+    const getListLevelPromise = Level.find({
+      limit,
+      skip,
+    }).sort("createdAt DESC");
+
+    const [total, listLevel] = await Promise.all([
+      getCountLevelPromise,
+      getListLevelPromise,
+    ]);
+
+    listLevel?.map((item) => {
+      item.createdAt = helper.convertToStringDate(item.createdAt);
+      item.updatedAt = helper.convertToStringDate(item.updatedAt);
+    });
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listLevel,
+      limit,
+      skip,
+      total,
+    });
+  }),
 
   add: tryCatch(async (req, res) => {
-    const { index, point, description, listPrivilege = [] } = req.body;
-    if (isNaN(index) || index <= 0 || !point || !description)
+    const { index, point = 0 } = req.body;
+    if (
+      typeof index != "number" ||
+      index <= 0 ||
+      point <= 0 ||
+      typeof point != "number"
+    )
       throw new AppError(400, "Bad Request", 400);
 
     const checkLevelContainPromise = Level.find({
@@ -51,8 +84,7 @@ module.exports = {
     const createLevelPromise = Level.create({
       point,
       index,
-      description,
-      listPrivilege,
+      title: `Level ${index}`,
     }).fetch();
     const updatePreviousLevelPromise = Level.updateOne({
       index: previousIndex,
@@ -67,9 +99,79 @@ module.exports = {
     return res.json({ err: 200, message: "Success" });
   }),
 
-  edit: tryCatch(async (req, res) => {}),
+  edit: tryCatch(async (req, res) => {
+    const { point, id } = req.body;
+    if (point <= 0 || typeof point != "number" || !id || typeof id != "string")
+      throw new AppError(400, "Bad Request", 400);
 
-  adminDetail: tryCatch(async (req, res) => {}),
+    const level = await Level.findOne({ id: id });
+    let previousLevel = null;
+    if (level.index != 1) {
+      previousLevel = await Level.findOne({ index: level.index - 1 });
+    }
+    if (!level) throw new AppError(400, "Level not exists in system", 400);
+
+    if (point >= level.nextLevelPoint && level.nextLevelPoint != -1) {
+      throw new AppError(
+        400,
+        `Current point must < point of level ${level.index + 1}`,
+        400
+      );
+    }
+    if (previousLevel && previousLevel?.point >= point) {
+      throw new AppError(
+        400,
+        `Current point must > point of level ${previousLevel.index}`,
+        400
+      );
+    }
+
+    const updateCurrentLevelPromise = Level.updateOne({ id: id }).set({
+      point,
+    });
+    let updatePreviousLevelPromise;
+    if (previousLevel) {
+      updatePreviousLevelPromise = Level.updateOne({
+        id: previousLevel.id,
+      }).set({
+        nextLevelPoint: point,
+      });
+    }
+
+    const [updatedLevel] = await Promise.all([
+      updateCurrentLevelPromise,
+      updatePreviousLevelPromise,
+    ]);
+    if (!updatedLevel)
+      throw new AppError(
+        400,
+        "Can not update level now, please try again",
+        400
+      );
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+    });
+  }),
+
+  adminDetail: tryCatch(async (req, res) => {
+    const { levelId } = req.body;
+    if (!levelId || typeof levelId != "string")
+      throw new AppError(400, "Bad Request", 400);
+
+    const level = await Level.findOne({ id: levelId });
+    if (!level) throw new AppError(400, "Level not exists in system", 400);
+
+    level.createdAt = helper.convertToStringDate(level.createdAt);
+    level.updatedAt = helper.convertToStringDate(level.updatedAt);
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: level,
+    });
+  }),
 
   // api/user/findLevel
   clientFind: tryCatch(async (req, res) => {

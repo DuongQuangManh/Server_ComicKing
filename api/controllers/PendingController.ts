@@ -5,56 +5,76 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+import { constants } from "../constants/constants";
+import { AppError } from "../custom/customClass";
 import tryCatch from "../utils/tryCatch";
 
-declare const Category: any
-declare const Author: any
+declare const Category: any;
+declare const Author: any;
+declare const VipTicket: any;
 
 module.exports = {
+  getComicPendingData: tryCatch(async (req, res) => {
+    const categories = await Category.find({
+      select: ["title"],
+    });
+    const authors = await Author.find({
+      select: ["name"],
+    });
 
-    getComicPendingData: tryCatch(async (req, res) => {
+    const pendingData = {
+      categories,
+      authors,
+    };
 
-        const categories = await Category.find({
-            select: ['title']
-        })
-        const authors = await Author.find({
-            select: ['name']
-        })
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: pendingData,
+    });
+  }),
 
-        const pendingData = {
-            categories,
-            authors
-        }
+  getCategories: tryCatch(async (req, res) => {
+    const categories = await Category.find({
+      select: ["title"],
+    });
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: pendingData
-        })
-    }),
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: categories,
+    });
+  }),
 
-    getCategories: tryCatch(async (req, res) => {
-        const categories = await Category.find({
-            select: ['title']
-        })
+  getAuthors: tryCatch(async (req, res) => {
+    const authors = await Author.find({
+      where: {
+        status: constants.COMMON_STATUS.ACTIVE,
+      },
+      select: ["name"],
+    });
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: categories
-        })
-    }),
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: authors,
+    });
+  }),
 
-    getAuthors: tryCatch(async (req, res) => {
-        const authors = await Author.find({
-            select: ['name'],
-        })
+  getVipTicket: tryCatch(async (req, res) => {
+    const listVipTicket = await VipTicket.find({
+      where: {
+        status: constants.COMMON_STATUS.ACTIVE,
+      },
+      select: ["name"],
+    });
+    if (!listVipTicket)
+      throw new AppError(400, "Cannot get list Vip Ticket", 400);
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: authors
-        })
-    })
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listVipTicket,
+    });
+  }),
 };
-

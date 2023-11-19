@@ -6,37 +6,33 @@
  */
 
 module.exports = {
-
   attributes: {
-
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-    index: { type: 'number', required: true },
+    index: { type: "number", required: true },
 
-    point: { type: 'number', required: true },
+    title: { type: "string" },
 
-    nextLevelPoint: { type: 'number', defaultsTo: -1 },
+    point: { type: "number", required: true },
 
-    description: { type: 'string', required: true },
+    nextLevelPoint: { type: "number", defaultsTo: -1 },
 
-    listPrivilege: { type: 'json', columnType: 'array', defaultsTo: [] },
+    // description: { type: "string", required: true },
 
-    startColor: { type: 'string', defaultsTo: '#fb6d78' },
+    listPrivilege: { type: "json", columnType: "array", defaultsTo: [] },
 
-    endColor: { type: 'string', defaultsTo: '#fb6d78' }
+    startColor: { type: "string", defaultsTo: "#fb6d78" },
+
+    endColor: { type: "string", defaultsTo: "#fb6d78" },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
 
-
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-
   },
-
 };
-

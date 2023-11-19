@@ -5,6 +5,8 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
+import { constants } from "../constants/constants";
+
 module.exports = {
   attributes: {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
@@ -13,17 +15,9 @@ module.exports = {
 
     title: { type: "string", required: true },
 
-    description: { type: "string" },
-
-    howToGet: {
-      type: "string",
-      isIn: ["event", "vip", "level"],
-      defaultsTo: "level",
-    },
-
     type: {
       type: "string",
-      isIn: ["event", "vip", "level"],
+      isIn: ["vip", "level"],
       defaultsTo: "level",
     },
 
@@ -36,6 +30,10 @@ module.exports = {
     tag: { type: "string", isIn: ["title", "avatar"], defaultsTo: "avatar" },
 
     needVipTicket: { type: "string", defaultsTo: "" },
+
+    status: { type: "string", defaultsTo: constants.COMMON_STATUS.ACTIVE },
+
+    uId: { type: "string" },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
