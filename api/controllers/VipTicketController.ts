@@ -7,6 +7,7 @@
 
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
+import { helper } from "../utils/helper";
 import tryCatch from "../utils/tryCatch";
 
 declare const VipTicket: any;
@@ -16,15 +17,29 @@ module.exports = {
   adminFind: tryCatch(async (req, res) => {
     const { limit = 10, skip = 0 } = req.body;
 
-    const listVipTicket = await VipTicket.find({
+    const getCountVipTicketPromise = VipTicket.count({});
+    const getListVipTicketPromise = VipTicket.find({
       limit,
       skip,
     }).sort("createdAt DESC");
+
+    const [total, listVipTicket] = await Promise.all([
+      getCountVipTicketPromise,
+      getListVipTicketPromise,
+    ]);
+
+    listVipTicket?.map((item, index) => {
+      item.createdAt = helper.convertToStringDate(item.createdAt);
+      item.duration = Math.round(item.duration / (1000 * 60 * 60 * 24));
+    });
 
     return res.status(200).json({
       err: 200,
       message: "Success",
       data: listVipTicket,
+      limit,
+      skip,
+      total,
     });
   }),
 
@@ -36,40 +51,41 @@ module.exports = {
       expExtraDaily,
       priority,
       coinExtra,
-      expEtra,
+      expExtra,
       status = constants.COMMON_STATUS.ACTIVE,
       id,
-      image,
+      name,
+      // image,
     } = req.body;
-
+    console.log(req.body);
     if (
       typeof price != "number" ||
       typeof duration != "number" ||
       typeof coinExtra != "number" ||
-      typeof expEtra != "number" ||
+      typeof expExtra != "number" ||
       typeof expExtraDaily != "number" ||
       typeof coinExtraDaily != "number" ||
       typeof priority != "number" ||
-      typeof image != "string"
+      typeof name != "string"
+      // typeof image != "string"
     )
       throw new AppError(400, "Bad Request", 400);
 
-    if (duration % (1000 * 60 * 60 * 24) != 0)
+    if (duration % 1 != 0 || duration < 1)
       throw new AppError(400, "Invalid duration", 400);
 
-    const updatedVipTicket = await VipTicket.updateOne({ id })
-      .set({
-        price,
-        duration,
-        coinExtra,
-        expEtra,
-        expExtraDaily,
-        coinExtraDaily,
-        priority,
-        status,
-        image,
-      })
-      .fetch();
+    const updatedVipTicket = await VipTicket.updateOne({ id }).set({
+      price,
+      duration: duration * 1000 * 60 * 60 * 24,
+      coinExtra,
+      expExtra,
+      expExtraDaily,
+      coinExtraDaily,
+      priority,
+      status,
+      name,
+      // image,
+    });
 
     if (!updatedVipTicket)
       throw new AppError(400, "Can't update vip ticket. Pls try again.", 400);
@@ -81,12 +97,17 @@ module.exports = {
   }),
 
   adminDetail: tryCatch(async (req, res) => {
-    const { id } = req.body;
+    const { vipTicketId } = req.body;
+    if (!vipTicketId) throw new AppError(400, "Bad Request", 400);
 
-    const vipTicket = await VipTicket.findOne({ id: id });
+    const vipTicket = await VipTicket.findOne({ id: vipTicketId });
 
     if (!vipTicket)
       throw new AppError(400, "Vip Ticket not exists in system", 400);
+
+    vipTicket.createdAt = helper.convertToStringDate(vipTicket.createdAt);
+    vipTicket.updatedAt = helper.convertToStringDate(vipTicket.updatedAt);
+    vipTicket.duration = Math.round(vipTicket.duration / (1000 * 60 * 60 * 24));
 
     return res.status(200).json({
       err: 200,
@@ -108,7 +129,6 @@ module.exports = {
       name,
       status = constants.COMMON_STATUS.ACTIVE,
     } = req.body;
-
     if (
       typeof price != "number" ||
       typeof duration != "number" ||
@@ -121,12 +141,12 @@ module.exports = {
     )
       throw new AppError(400, "Bad Request", 400);
 
-    if (duration % (1000 * 60 * 60 * 24) != 0)
+    if (duration % 1 != 0 || duration < 1)
       throw new AppError(400, "Invalid duration", 400);
 
     const createdVipTicket = await VipTicket.create({
       price,
-      duration,
+      duration: duration * 1000 * 60 * 60 * 24,
       coinExtra,
       expExtra,
       expExtraDaily,

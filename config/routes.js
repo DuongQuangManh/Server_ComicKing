@@ -74,6 +74,7 @@ module.exports.routes = {
   'POST /api/admin/getComicPendingData': 'PendingController.getComicPendingData',
   'POST /api/admin/getCategoriesPending': 'PendingController.getCategories',
   'POST /api/admin/getAuthorsPending': 'PendingController.getAuthors',
+  'POST /api/admin/getVipTicketPending': 'PendingController.getVipTicket',
 
   // decorate
   'POST /api/admin/addDecorate': 'DecorateController.add',

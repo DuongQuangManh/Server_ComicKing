@@ -4,6 +4,8 @@ export const constants = {
     USER: "user",
     AUTHOR: "author",
     CHAPTER: "chapter",
+    COINPACKAGE: "coinPackage",
+    DECORATE: "decorate",
   },
   COMIC_STATUS: {
     IN_PROCESS: "INPROCESS",

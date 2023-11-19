@@ -5,6 +5,8 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
+import { constants } from "../constants/constants";
+
 module.exports = {
   attributes: {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
@@ -33,6 +35,8 @@ module.exports = {
     },
 
     priority: { type: "number", defaultsTo: 0 },
+
+    status: { type: "string", defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
