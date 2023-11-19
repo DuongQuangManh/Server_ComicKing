@@ -40,12 +40,13 @@ module.exports = {
 
     const total = await Category.count({});
     const categories = await Category.find({
-      select: ["title", "description", "numOfComic", "status", "createdAt"],
+      select: ["title", "updatedAt", "numOfComic", "status", "createdAt"],
       ...findOption,
     }).sort("createdAt desc");
 
     for (let category of categories) {
       category.createdAt = helper.convertToStringDate(category.createdAt);
+      category.updatedAt = helper.convertToStringDate(category.updatedAt);
     }
 
     return res.status(200).json({
@@ -58,8 +59,18 @@ module.exports = {
   }),
 
   add: tryCatch(async (req, res) => {
-    const body = req.body;
-    const category = await Category.create(body).fetch();
+    const {
+      title,
+      description,
+      status = constants.COMMON_STATUS.ACTIVE,
+    } = req.body;
+    if (!title || !description) throw new AppError(400, "Bad Request", 400);
+
+    const category = await Category.create({
+      title,
+      description,
+      status,
+    }).fetch();
 
     return res.status(200).json({
       message: "Add success",
@@ -69,14 +80,26 @@ module.exports = {
   }),
 
   edit: tryCatch(async (req, res) => {
-    const { id, title, description, status, numOfComic } = req.body;
+    const {
+      id,
+      title,
+      description,
+      status = constants.COMMON_STATUS.ACTIVE,
+    } = req.body;
+    if (!id || !title || !description)
+      throw new AppError(400, "Bad Request", 400);
 
     const category = await Category.updateOne({ id }).set({
       title,
       description,
       status,
-      numOfComic,
     });
+    if (!category)
+      throw new AppError(
+        400,
+        "Can not update category now, pls try again",
+        400
+      );
 
     return res.status(200).json({
       message: "Update success",
@@ -150,7 +173,6 @@ module.exports = {
     }
 
     let category = await Category.findOne({ id });
-    delete category.password;
     category.createdAt = moment(category.createdAt).format(
       constants.DATE_TIME_FORMAT
     );

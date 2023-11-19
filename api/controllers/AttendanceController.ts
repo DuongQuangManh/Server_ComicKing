@@ -10,6 +10,7 @@ import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
 import tryCatch from "../utils/tryCatch";
 import { getStartOfDayTimestamp } from "../services";
+import { helper } from "../utils/helper";
 
 declare const Attendance: any;
 declare const UserWallet: any;
@@ -17,7 +18,33 @@ declare const User: any;
 declare const UserAttendance: any;
 
 module.exports = {
-  adminFind: tryCatch(async (req, res) => {}),
+  adminFind: tryCatch(async (req, res) => {
+    const { limit = 10, skip = 0 } = req.body;
+
+    const getCountAttendancePromise = Attendance.count({});
+    const getListAttendancePromise = Attendance.find({
+      limit,
+      skip,
+    }).sort("createdAt DESC");
+
+    const [total, listAttendance] = await Promise.all([
+      getCountAttendancePromise,
+      getListAttendancePromise,
+    ]);
+
+    listAttendance?.map((item, index) => {
+      item.createdAt = helper.convertToStringDate(item.createdAt);
+    });
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listAttendance,
+      limit,
+      skip,
+      total,
+    });
+  }),
 
   add: tryCatch(async (req, res) => {
     const { index, coinExtra, expExtra, priority } = req.body;
@@ -55,7 +82,13 @@ module.exports = {
   }),
 
   edit: tryCatch(async (req, res) => {
-    const { id, coinExtra, expExtra, priority } = req.body;
+    const {
+      id,
+      coinExtra,
+      expExtra,
+      priority,
+      status = constants.COMMON_STATUS.ACTIVE,
+    } = req.body;
     if (
       isNaN(coinExtra) ||
       isNaN(expExtra) ||
@@ -73,6 +106,7 @@ module.exports = {
       coinExtra,
       expExtra,
       priority,
+      status,
     });
     if (!updateAttendance)
       throw new AppError(400, "Cannot update Attendance pls try again.", 400);
@@ -84,12 +118,19 @@ module.exports = {
   }),
 
   adminDetail: tryCatch(async (req, res) => {
-    const { id } = req.body;
-    if (!id) throw new AppError(400, "Bad Request", 400);
+    const { attendanceId } = req.body;
+    if (!attendanceId) throw new AppError(400, "Bad Request", 400);
 
-    const checkAttendance = await Attendance.findOne({ id });
+    const checkAttendance = await Attendance.findOne({ id: attendanceId });
     if (!checkAttendance)
       throw new AppError(400, "Attendance is not exists in system.", 400);
+
+    checkAttendance.createdAt = helper.convertToStringDate(
+      checkAttendance.createdAt
+    );
+    checkAttendance.updatedAt = helper.convertToStringDate(
+      checkAttendance.updatedAt
+    );
 
     return res.status(200).json({
       message: "Success",

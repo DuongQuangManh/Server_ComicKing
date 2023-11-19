@@ -65,13 +65,25 @@ module.exports = {
     )
       throw new AppError(400, "Bad Request", 400);
 
+    const checkCoinPackage = await CoinPackage.findOne({ id });
+    if (!checkCoinPackage)
+      throw new AppError(400, "CoinPackage is not exists in system", 400);
+
+    if (checkCoinPackage.image != image) {
+      var { url } = await uploadImage(
+        image,
+        `${constants.IMAGE_FOLDER.COMIC}/${checkCoinPackage.uId}`,
+        "image"
+      );
+    }
+
     const updatedCoinPackage = await CoinPackage.updateOne({ id }).set({
       price,
       coin,
       exp,
       priority,
       status,
-      image,
+      image: url ? url : image,
       suggest,
     });
 

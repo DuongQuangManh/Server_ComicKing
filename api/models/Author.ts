@@ -8,37 +8,36 @@
 import { constants } from "../constants/constants";
 
 module.exports = {
-
   attributes: {
-
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
 
-    name: { type: 'string', required: true },
+    name: { type: "string", required: true },
 
-    description: { type: 'string', defaultsTo: 'Tác giả của ứng dụng.' },
+    description: { type: "string", defaultsTo: "Tác giả của ứng dụng." },
 
-    numOfFollow: { type: 'number', defaultsTo: 0 },
+    numOfFollow: { type: "number", defaultsTo: 0 },
 
-    numOfComic: { type: 'number', defaultsTo: 0 },
+    numOfComic: { type: "number", defaultsTo: 0 },
 
-    status: { type: 'string', defaultsTo: constants.COMMON_STATUS.ACTIVE },
+    status: { type: "string", defaultsTo: constants.COMMON_STATUS.ACTIVE },
 
-    image: { type: 'string', defaultsTo: 'https://ik.imagekit.io/c7aqey5nn/author/avatar.png' },
+    image: {
+      type: "string",
+      defaultsTo: "https://ik.imagekit.io/c7aqey5nn/author/avatar.png",
+    },
 
-    updatedComicAt: { type: 'number', defaultsTo: 0 }
+    updatedComicAt: { type: "number", defaultsTo: 0 },
+
+    uId: { type: "string" },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
 
-
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-
   },
-
 };
-
