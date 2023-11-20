@@ -594,4 +594,31 @@ module.exports = {
       limit,
     });
   }),
+
+  getListChapter: tryCatch(async (req, res) => {
+    const { skip = 0, limit = 10, comicId } = req.body;
+    if (!comicId) throw new AppError(400, "Bad Request", 400);
+    const findOption = { skip, limit };
+
+    const listChapter = await Chapter.find({
+      where: {
+        comic: comicId,
+      },
+      ...findOption,
+    }).sort("index desc");
+
+    for (let chapter of listChapter) {
+      chapter.createdAt = helper.convertToStringDate(chapter.createdAt);
+      chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt);
+      chapter.images = chapter.images?.length ?? 0;
+    }
+
+    return res.status(200).json({
+      err: 200,
+      status: "Success",
+      data: listChapter,
+      ...findOption,
+      total: listChapter[0]?.index || 0,
+    });
+  }),
 };

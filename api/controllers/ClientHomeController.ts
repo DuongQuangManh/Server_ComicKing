@@ -8,162 +8,169 @@
 import { constants } from "../constants/constants";
 import tryCatch from "../utils/tryCatch";
 
-declare const sails: any
-declare const Comic: any
+declare const sails: any;
+declare const Comic: any;
 
-const db = sails.getDatastore().manager
+const db = sails.getDatastore().manager;
 
 module.exports = {
+  getHomeComics: tryCatch(async (req, res) => {}),
 
-    getHomeComics: tryCatch(async (req, res) => {
+  getDoneComics: tryCatch(async (req, res) => {
+    const listComic = await db
+      .collection("comic")
+      .aggregate([
+        {
+          $match: { status: constants.COMIC_STATUS.DONE },
+        },
+        {
+          $sort: { numOfView: -1, numOfLike: -1, createdAt: -1 },
+        },
+        {
+          $limit: 4,
+        },
+        {
+          $project: {
+            id: "$_id",
+            image: 1,
+            name: 1,
+            description: 1,
+            numOfFollow: 1,
+            numOfLike: 1,
+            numOfView: 1,
+            numOfChapter: 1,
+          },
+        },
+      ])
+      .toArray();
 
-    }),
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listComic,
+      canMore: true,
+    });
+  }),
 
-    getDoneComics: tryCatch(async (req, res) => {
-        const listComic = await db.collection('comic').aggregate([
-            {
-                $match: { status: constants.COMIC_STATUS.DONE }
-            },
-            {
-                $sort: { numOfView: -1, numOfLike: -1, createdAt: -1 }
-            },
-            {
-                $limit: 4
-            },
-            {
-                $project: {
-                    id: '$_id',
-                    image: 1,
-                    name: 1,
-                    description: 1,
-                    numOfFollow: 1,
-                    numOfLike: 1,
-                    numOfView: 1,
-                    numOfChapter: 1
-                }
-            },
-        ]).toArray()
+  getSliderComics: tryCatch(async (req, res) => {
+    let limit = 6;
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: listComic,
-            canMore: true
-        })
-    }),
+    const sliderComics = await Comic.find({
+      limit,
+    });
 
-    getSliderComics: tryCatch(async (req, res) => {
-        let limit = 6
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: {
+        title: "",
+        canMore: false,
+        listComic: sliderComics,
+      },
+    });
+  }),
 
-        const sliderComics = await Comic.find({
-            limit
-        })
+  getNewestComics: tryCatch(async (req, res) => {
+    const listComic = await db
+      .collection("comic")
+      .aggregate([
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $limit: 6,
+        },
+        {
+          $project: {
+            id: "$_id",
+            image: 1,
+            name: 1,
+            description: 1,
+            numOfChapter: 1,
+            numOfLike: 1,
+            numOfView: 1,
+          },
+        },
+      ])
+      .toArray();
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: {
-                title: '',
-                canMore: false,
-                listComic: sliderComics
-            }
-        })
-    }),
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listComic,
+      canMore: true,
+    });
+  }),
 
-    getNewestComics: tryCatch(async (req, res) => {
-        const listComic = await db.collection('comic').aggregate([
-            {
-                $sort: { createdAt: -1 }
-            },
-            {
-                $limit: 6
-            },
-            {
-                $project: {
-                    id: '$_id',
-                    image: 1,
-                    name: 1,
-                    description: 1,
-                    numOfChapter: 1,
-                    numOfLike: 1,
-                    numOfView: 1
-                }
-            },
-        ]).toArray()
+  getHotComic: tryCatch(async (req, res) => {
+    const listComic = await db
+      .collection("comic")
+      .aggregate([
+        {
+          $sort: { numOfView: -1, numOfLike: -1 },
+        },
+        {
+          $limit: 6,
+        },
+        {
+          $project: {
+            id: "$_id",
+            image: 1,
+            name: 1,
+            banner: 1,
+          },
+        },
+      ])
+      .toArray();
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: listComic,
-            canMore: true
-        })
-    }),
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listComic,
+      canMore: true,
+    });
+  }),
 
-    getHotComic: tryCatch(async (req, res) => {
-        const listComic = await db.collection('comic').aggregate([
-            {
-                $sort: { numOfView: -1, numOfLike: -1 }
-            },
-            {
-                $limit: 6
-            },
-            {
-                $project: {
-                    id: '$_id',
-                    image: 1,
-                    name: 1,
-                    banner: 1
-                }
-            },
-        ]).toArray()
+  getNewestComicsUpdateChapter: tryCatch(async (req, res) => {
+    const listComic = await db
+      .collection("comic")
+      .aggregate([
+        {
+          $sort: { updatedChapterAt: -1 },
+        },
+        {
+          $limit: 6,
+        },
+        {
+          $project: {
+            id: "$_id",
+            image: 1,
+            name: 1,
+          },
+        },
+      ])
+      .toArray();
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: listComic,
-            canMore: true
-        })
-    }),
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listComic,
+      canMore: true,
+    });
+  }),
 
-    getNewestComicsUpdateChapter: tryCatch(async (req, res) => {
-        const listComic = await db.collection('comic').aggregate([
-            {
-                $sort: { updatedChapterAt: -1 }
-            },
-            {
-                $limit: 6
-            },
-            {
-                $project: {
-                    id: '$_id',
-                    image: 1,
-                    name: 1
-                }
-            },
-        ]).toArray()
+  getProposeComics: tryCatch(async (req, res) => {
+    let limit = 6;
 
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: listComic,
-            canMore: true
-        })
-    }),
+    const proposeComics = await Comic.find({
+      limit,
+      skip: 2,
+    });
 
-    getProposeComics: tryCatch(async (req, res) => {
-        let limit = 6
-
-        const proposeComics = await Comic.find({
-            limit,
-            skip: 6
-        })
-
-        return res.status(200).json({
-            err: 200,
-            message: 'Success',
-            data: proposeComics
-        })
-    })
-
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: proposeComics,
+    });
+  }),
 };
-

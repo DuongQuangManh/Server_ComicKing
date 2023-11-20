@@ -63,6 +63,7 @@ module.exports.routes = {
   'POST /api/admin/addComic': 'ComicController.add',
   'POST /api/admin/editComic': 'ComicController.edit',
   'POST /api/admin/detailComic': 'ComicController.adminDetail',
+  'POST /api/admin/comic/getListChapter': 'ComicController.getListChapter',
 
   // chapter
   'POST /api/admin/findChapter': 'ChapterController.find',
