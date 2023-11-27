@@ -71,7 +71,7 @@ module.exports = {
       attendance.coinExtra +
       (!checkUserWallet || isExpired
         ? 0
-        : checkUserWallet.ticket?.coinExtraDaily);
+        : checkUserWallet.ticket?.coinExtraDaily || 0);
     let expExtra =
       attendance.expExtra +
       (!checkUserWallet || isExpired

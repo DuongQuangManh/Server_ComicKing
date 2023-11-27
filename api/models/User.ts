@@ -56,6 +56,8 @@ module.exports = {
 
     likeMyComments: { type: "json", columnType: "array", defaultsTo: [] },
 
+    deviceId: { type: "string", defaultsTo: "" },
+
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝

@@ -136,6 +136,8 @@ module.exports.routes = {
   'POST /api/user/loginWithFacebook': 'AuthController.loginWithFacebook',
   'POST /api/user/changePassword': 'AuthController.changePassword',
   'POST /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp',
+  'POST /api/user/sendDeviceInfo': 'AuthController.sendDeviceInfo',
+  'POST /api/user/logout': 'AuthController.logout',
 
   // user
   'POST /api/user/getProfile': 'UserController.getProfile',
@@ -168,6 +170,7 @@ module.exports.routes = {
 
   // home client
   'POST /api/user/getNewestComics': 'ClientHomeController.getNewestComics',
+  'POST /api/user/getNewestComicUpdatedChapter': 'ClientHomeController.getNewestComicsUpdateChapter',
   'POST /api/user/getProposeComics': 'ClientHomeController.getProposeComics',
   'POST /api/user/getSliderComics': 'ClientHomeController.getSliderComics',
   'POST /api/user/getDoneComics': 'ClientHomeController.getDoneComics',

@@ -139,13 +139,21 @@ module.exports = {
           $sort: { updatedChapterAt: -1 },
         },
         {
-          $limit: 6,
+          $sort: { numOfView: -1, numOfLike: -1, createdAt: -1 },
+        },
+        {
+          $limit: 4,
         },
         {
           $project: {
             id: "$_id",
             image: 1,
             name: 1,
+            description: 1,
+            numOfFollow: 1,
+            numOfLike: 1,
+            numOfView: 1,
+            numOfChapter: 1,
           },
         },
       ])

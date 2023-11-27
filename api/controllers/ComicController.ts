@@ -600,12 +600,22 @@ module.exports = {
     if (!comicId) throw new AppError(400, "Bad Request", 400);
     const findOption = { skip, limit };
 
-    const listChapter = await Chapter.find({
+    const getComicPromise = Comic.findOne({
+      where: { id: comicId },
+      select: ["lastChapterIndex"],
+    });
+    const getListChapterPromise = Chapter.find({
       where: {
         comic: comicId,
       },
       ...findOption,
     }).sort("index desc");
+
+    const [listChapter, comic] = await Promise.all([
+      getListChapterPromise,
+      getComicPromise,
+    ]);
+    if (!comic) throw new AppError(400, "Comic Not found", 400);
 
     for (let chapter of listChapter) {
       chapter.createdAt = helper.convertToStringDate(chapter.createdAt);
@@ -618,7 +628,7 @@ module.exports = {
       status: "Success",
       data: listChapter,
       ...findOption,
-      total: listChapter[0]?.index || 0,
+      total: comic.lastChapterIndex || 0,
     });
   }),
 };
