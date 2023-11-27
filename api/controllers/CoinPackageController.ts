@@ -72,7 +72,7 @@ module.exports = {
     if (checkCoinPackage.image != image) {
       var { url } = await uploadImage(
         image,
-        `${constants.IMAGE_FOLDER.COMIC}/${checkCoinPackage.uId}`,
+        `${constants.IMAGE_FOLDER.COINPACKAGE}/${checkCoinPackage.uId}`,
         "image"
       );
     }

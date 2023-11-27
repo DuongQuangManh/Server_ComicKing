@@ -40,8 +40,40 @@ declare const Otp: any;
 declare const OtpVerification: any;
 declare const Decorate: any;
 declare const UserWallet: any;
+declare const Device: any;
 
 module.exports = {
+  sendDeviceInfo: tryCatch(async (req, res) => {
+    const { firebaseToken, deviceId, deviceName, os, osVersion, appVersion } =
+      req.body;
+    if (!deviceId) throw new AppError(400, "Bad Request", 400);
+
+    const checkDevice = await Device.findOne({ deviceId });
+    if (checkDevice) {
+      await Device.updateOne({ id: checkDevice.id }).set({
+        firebaseToken,
+        deviceName,
+        os,
+        osVersion,
+        appVersion,
+      });
+    } else {
+      await Device.create({
+        firebaseToken,
+        deviceId,
+        deviceName,
+        os,
+        osVersion,
+        appVersion,
+      });
+    }
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+    });
+  }),
+
   register: tryCatch(async (req, res) => {
     const { body } = req;
     registerValidation(body);
@@ -65,6 +97,7 @@ module.exports = {
         password: hashPassword(body.password),
         nickName: generateUsername(),
         birthday: body.birthday,
+        deviceId: body.deviceId,
       },
       oldOtpVerify,
       REGISTER_VERIFY_OTP_MAIL_TEMPLATE
@@ -169,6 +202,10 @@ module.exports = {
 
     checkPassword(exitsUser.password, body.password);
 
+    await User.updateOne({ email: body.email }).set({
+      deviceId: body.deviceId,
+    });
+
     // if (body.needVerifyOtp == undefined || body.needVerifyOtp) {
     //     const checkOtp = await OtpVerification.findOne({ email: body.email })
     //     // update verifycation object sent to user
@@ -251,7 +288,7 @@ module.exports = {
   }),
 
   loginWithGoogle: tryCatch(async (req, res) => {
-    const idToken = req.body.idToken;
+    const { idToken, deviceId } = req.body;
     const decodedToken = await authAdmin.auth().verifyIdToken(idToken);
     let checkUser = await User.findOne({ email: decodedToken.email });
     if (!checkUser) {
@@ -277,6 +314,7 @@ module.exports = {
         uId,
         avatarFrame: avatarFrame[0].id,
         avatarTitle: avatarTitle[0].id,
+        deviceId: deviceId,
       }).fetch();
 
       if (!checkUser)
@@ -291,6 +329,11 @@ module.exports = {
           user: checkUser.id,
         }),
       ]);
+    } else {
+      console.log("Set device Id");
+      await User.updateOne({ email: decodedToken.email?.toLowerCase() }).set({
+        deviceId: deviceId,
+      });
     }
 
     const accessToken = generateToken({
@@ -313,7 +356,7 @@ module.exports = {
   }),
 
   loginWithFacebook: tryCatch(async (req, res) => {
-    const idToken = req.body.idToken;
+    const { idToken, deviceId } = req.body;
     const decodedToken = await authAdmin.auth().verifyIdToken(idToken);
     let checkUser = await User.findOne({ fbId: decodedToken.uid });
 
@@ -340,6 +383,7 @@ module.exports = {
         uId,
         avatarFrame: avatarFrame[0].id,
         avatarTitle: avatarTitle[0].id,
+        deviceId: deviceId,
       }).fetch();
       if (!checkUser)
         throw new AppError(
@@ -353,6 +397,12 @@ module.exports = {
           user: checkUser.id,
         }),
       ]);
+    } else {
+      await User.updateOne({
+        fbId: decodedToken.uid,
+      }).set({
+        deviceId: deviceId,
+      });
     }
 
     const accessToken = generateToken({
@@ -563,6 +613,19 @@ module.exports = {
       err: 200,
       message: "Thay đổi mật khẩu thành công.",
       data: {},
+    });
+  }),
+
+  logout: tryCatch(async (req, res) => {
+    const { deviceId } = req.body;
+
+    await User.updateOne({ deviceId }).set({
+      deviceId: "",
+    });
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success.",
     });
   }),
 };

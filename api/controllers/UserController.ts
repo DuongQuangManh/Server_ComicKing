@@ -40,13 +40,13 @@ module.exports = {
       User.find({
         select: [
           "email",
-          "fbId",
+          // "fbId",
           "fullName",
           "nickName",
           "createdAt",
           "status",
           "updatedAt",
-          "level",
+          // "level",
         ],
         ...findOptions,
       }).sort("createdAt desc"),
@@ -618,7 +618,7 @@ module.exports = {
 
     const getAvatarFramePromise = Decorate.findOne({
       where: { id: avatarFrameId, tag: "avatar" },
-      select: ["image", "needPoint", "description", "action", "title", "type"],
+      select: ["image", "needPoint", "action", "title", "type"],
     });
     const getUserWalletPromise = UserWallet.findOne({ user: userId });
     const [avatarFrame, userWallet] = await Promise.all([
@@ -666,7 +666,7 @@ module.exports = {
 
     const getAvatarTitlePromise = Decorate.findOne({
       where: { id: avatarTitleId, tag: "title" },
-      select: ["image", "needPoint", "description", "action", "title"],
+      select: ["image", "needPoint", "action", "title"],
     });
     const getUserWalletPromise = UserWallet.findOne({ user: userId });
     const [avatarTitle, userWallet] = await Promise.all([

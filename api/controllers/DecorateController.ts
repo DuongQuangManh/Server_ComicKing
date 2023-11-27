@@ -124,15 +124,17 @@ module.exports = {
         "image"
       );
     }
-    const updatedDecorate = await Decorate.create({
-      title,
-      image: url ? url : decorate.image,
-      tag,
-      needPoint,
-      type,
-      status,
-      needVipTicket: type == "vip" ? vipTicket.id : "",
-    }).fetch();
+    const updatedDecorate = await Decorate.update({ id })
+      .set({
+        title,
+        image: url ? url : decorate.image,
+        tag,
+        needPoint,
+        type,
+        status,
+        needVipTicket: type == "vip" ? vipTicket.id : "",
+      })
+      .fetch();
     if (!updatedDecorate)
       throw new AppError(400, "Không thể create vui lòng thử lại", 400);
 

@@ -594,4 +594,41 @@ module.exports = {
       limit,
     });
   }),
+
+  getListChapter: tryCatch(async (req, res) => {
+    const { skip = 0, limit = 10, comicId } = req.body;
+    if (!comicId) throw new AppError(400, "Bad Request", 400);
+    const findOption = { skip, limit };
+
+    const getComicPromise = Comic.findOne({
+      where: { id: comicId },
+      select: ["lastChapterIndex"],
+    });
+    const getListChapterPromise = Chapter.find({
+      where: {
+        comic: comicId,
+      },
+      ...findOption,
+    }).sort("index desc");
+
+    const [listChapter, comic] = await Promise.all([
+      getListChapterPromise,
+      getComicPromise,
+    ]);
+    if (!comic) throw new AppError(400, "Comic Not found", 400);
+
+    for (let chapter of listChapter) {
+      chapter.createdAt = helper.convertToStringDate(chapter.createdAt);
+      chapter.updatedAt = helper.convertToStringDate(chapter.updatedAt);
+      chapter.images = chapter.images?.length ?? 0;
+    }
+
+    return res.status(200).json({
+      err: 200,
+      status: "Success",
+      data: listChapter,
+      ...findOption,
+      total: comic.lastChapterIndex || 0,
+    });
+  }),
 };

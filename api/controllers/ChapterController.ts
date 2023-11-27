@@ -77,10 +77,10 @@ module.exports = {
     const { comic, images, status } = req.body;
     if (!comic || !Array.isArray(images) || images.length == 0)
       throw new AppError(400, "Bad Request", 400);
-    if (images.length > 30)
+    if (images.length > 50)
       throw new AppError(
         400,
-        "Vui lòng giảm số lượng image (tối đa 30/1chapter)",
+        "Vui lòng giảm số lượng image (tối đa 50/1chapter)",
         400
       );
 
