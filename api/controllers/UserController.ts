@@ -25,6 +25,7 @@ declare const InteractComic: any;
 declare const Decorate: any;
 declare const Comment: any;
 declare const UserWallet: any;
+declare const Level: any;
 
 module.exports = {
   find: tryCatch(async (req, res) => {
@@ -725,21 +726,38 @@ module.exports = {
 
     const getSenderPromise = User.findOne({
       where: { id: senderId },
-      select: ["avatarFrame", "level", "fullName", "image"],
+      select: ["avatarFrame", "fullName", "image"],
     });
     const getChapterPromise = Chapter.findOne({
       where: { index: chapterIndex, comic: comicId },
       select: ["comic"],
     });
-    const [sender, chapter] = await Promise.all([
+
+    const getUserWallet =await UserWallet.findOne({where:{user:senderId},select:["exp"]});
+    if (!getUserWallet) throw new AppError(400, "Invalid User wallet.", 400);
+
+    let getLevelPromise = null;
+
+    if (typeof getUserWallet.exp == "number") {
+      getLevelPromise = Level.find({
+        where: {
+          point: { "<=": getUserWallet.exp },
+        },
+        limit: 1,
+      }).sort("index DESC");
+    }
+
+    const [sender, chapter,level] = await Promise.all([
       getSenderPromise,
       getChapterPromise,
+      getLevelPromise
     ]);
+   
     if (!sender) throw new AppError(400, "User is not exists in system", 400);
     if (!chapter)
       throw new AppError(400, "Chapter is not exists in system", 400);
 
-    const { id, level, fullName, image } = sender;
+    const { id, fullName, image } = sender;
     const avatarFrame = await Decorate.findOne({
       where: { id: sender.avatarFrame },
       select: ["image"],
@@ -752,7 +770,7 @@ module.exports = {
       comic: chapter.comic,
       senderInfo: {
         avatarFrame: avatarFrame?.image,
-        level,
+        level:level?.[0] ? level[0].index : 0,
         fullName,
         image,
       },
@@ -790,20 +808,36 @@ module.exports = {
 
     const getSenderPromise = User.findOne({
       where: { id: senderId },
-      select: ["avatarFrame", "level", "fullName", "image"],
+      select: ["avatarFrame", "fullName", "image"],
     });
     const getComicPromise = Comic.findOne({
       where: { id: comicId },
       select: [],
     });
-    const [sender, comic] = await Promise.all([
+
+    const getUserWallet =await UserWallet.findOne({where:{user:senderId},select:["exp"]});
+    if (!getUserWallet) throw new AppError(400, "Invalid User wallet.", 400);
+
+    let getLevelPromise = null;
+
+    if (typeof getUserWallet.exp == "number") {
+      getLevelPromise = Level.find({
+        where: {
+          point: { "<=": getUserWallet.exp },
+        },
+        limit: 1,
+      }).sort("index DESC");
+    }
+    
+    const [sender, comic,level] = await Promise.all([
       getSenderPromise,
       getComicPromise,
+      getLevelPromise
     ]);
     if (!sender) throw new AppError(400, "User is not exists in system", 400);
     if (!comic) throw new AppError(400, "Comic is not exists in system", 400);
 
-    const { id, level, fullName, image } = sender;
+    const { id, fullName, image } = sender;
     const avatarFrame = await Decorate.findOne({
       where: { id: sender.avatarFrame },
       select: ["image"],
@@ -811,11 +845,10 @@ module.exports = {
     const createdComment = await Comment.create({
       sender: id,
       content,
-      level,
       comic: comic.id,
       senderInfo: {
         avatarFrame: avatarFrame?.image,
-        level,
+        level:level?.[0] ? level[0].index : 0,
         fullName,
         image,
       },
@@ -848,15 +881,32 @@ module.exports = {
 
     const getSenderPromise = User.findOne({
       where: { id: senderId },
-      select: ["avatarFrame", "image", "level", "fullName"],
+      select: ["avatarFrame", "image", "fullName"],
     });
     const getCommentPromise = Comment.findOne({
       where: { id: commentId },
       select: ["comic", "chapter", "canContainComment"],
     });
-    const [sender, comment] = await Promise.all([
+
+    const getUserWallet =await UserWallet.findOne({where:{user:senderId},select:["exp"]});
+    if (!getUserWallet) throw new AppError(400, "Invalid User wallet.", 400);
+
+    let getLevelPromise = null;
+
+    if (typeof getUserWallet.exp == "number") {
+      getLevelPromise = Level.find({
+        where: {
+          point: { "<=": getUserWallet.exp },
+        },
+        limit: 1,
+      }).sort("index DESC");
+    }
+
+
+    const [sender, comment,level] = await Promise.all([
       getSenderPromise,
       getCommentPromise,
+      getLevelPromise
     ]);
     if (!sender) throw new AppError(400, "User is not exists in system", 400);
     if (!comment)
@@ -868,7 +918,7 @@ module.exports = {
       where: { id: sender.avatarFrame },
       select: ["image"],
     });
-    const { id, level, fullName, image } = sender;
+    const { id, fullName, image } = sender;
     const { comic, chapter } = comment;
     const createdComment = await Comment.create({
       sender: id,
@@ -879,7 +929,7 @@ module.exports = {
       canContainComment: false,
       senderInfo: {
         avatarFrame: avatarFrame?.image,
-        level,
+        level:level?.[0] ? level[0].index : 0,
         fullName,
         image,
       },

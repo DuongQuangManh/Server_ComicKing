@@ -217,4 +217,6 @@ module.exports.routes = {
   'POST /api/user/detailVipTicket': 'VipTicketController.clientDetail',
   'POST /api/user/createVipTicketTransaction': 'TransactionController.createVipTicketTransaction',
   'POST /api/user/requestEndTransaction': 'TransactionController.requestEndTransaction'
+  
+
 };
