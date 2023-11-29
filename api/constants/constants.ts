@@ -52,4 +52,11 @@ export const constants = {
   AUTHOR_AVATAR: "author/avatar.png",
   DATE_TIME_FORMAT: "HH:mm  DD-MM-YYYY",
   DATE_FORMAT: "DD-MM-YYYY",
+  NOTIFICATION_ACTION: {
+    VIP_TICKET: "vipticket",
+    // COIN_PACKAGE: 'coinPackage',
+    NONE: "none",
+    NEW_COMIC: "newcomic",
+    NEW_CHAPTER: "newchapter",
+  },
 };

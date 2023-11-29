@@ -5,6 +5,7 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+import { sendMutipleNotification } from "../../config/firebase/firebase";
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
 import { mutipleUpload } from "../imagekit";
@@ -17,6 +18,7 @@ declare const Comic: any;
 declare const User: any;
 declare const InteractComic: any;
 declare const Comment: any;
+declare const Notification: any;
 
 module.exports = {
   find: tryCatch(async (req, res) => {
@@ -88,8 +90,17 @@ module.exports = {
       "uId",
       "lastChapterIndex",
       "numOfChapter",
+      "name",
     ]);
     if (!checkComic) throw new AppError(400, "Truyện không tồn tại", 400);
+    const getUserFollowingComicPromise = User.find({
+      where: {
+        comicFollowing: {
+          contains: comic,
+        },
+      },
+      select: ["deviceToken"],
+    });
 
     const lastChapterIndex = checkComic.lastChapterIndex;
     const pathImages = await mutipleUpload(
@@ -98,21 +109,51 @@ module.exports = {
       "url"
     );
 
-    const createdChapter = await Chapter.create({
+    const createChapterPromise = Chapter.create({
       comic,
       images: pathImages,
       status,
       index: lastChapterIndex + 1,
     }).fetch();
+
+    const [createdChapter, listUser = []] = await Promise.all([
+      createChapterPromise,
+      getUserFollowingComicPromise,
+    ]);
+
     if (!createdChapter)
       throw new AppError(400, "Không thể thêm chapter vui lòng thử lại.", 400);
 
-    const updatedComicPromise = Comic.updateOne({ id: comic }).set({
+    let listDeviceToken: string[] = [];
+    let listNotificationObj: any[] = [];
+    for (let user of listUser) {
+      if (user.deviceToken) {
+        listDeviceToken.push(user.deviceToken);
+      }
+      listNotificationObj.push({
+        title: "Chapter mới",
+        tag: "system",
+        content: `${checkComic.name} đã có thêm chapter mới`,
+        action: constants.NOTIFICATION_ACTION.NEW_CHAPTER,
+        receiver: user.id,
+        data: {
+          comic: comic,
+        },
+      });
+    }
+
+    await Comic.updateOne({ id: comic }).set({
       lastChapterIndex: lastChapterIndex + 1,
       updatedChapterAt: createdChapter.createdAt,
       numOfChapter: checkComic.numOfChapter + 1,
     });
-    Promise.all([updatedComicPromise]);
+    const createEachNotificationPromise =
+      Notification.createEach(listNotificationObj);
+    const sendNotificationPromise = sendMutipleNotification(listDeviceToken, {
+      title: "Chapter mới",
+      body: `${checkComic.name} đã có thêm chapter mới`,
+    });
+    Promise.all([createEachNotificationPromise, sendNotificationPromise]);
 
     return res.status(200).json({
       err: 200,

@@ -44,11 +44,17 @@ declare const Device: any;
 
 module.exports = {
   sendDeviceInfo: tryCatch(async (req, res) => {
-    const { firebaseToken, deviceId, deviceName, os, osVersion, appVersion } =
-      req.body;
-    if (!deviceId) throw new AppError(400, "Bad Request", 400);
+    const {
+      firebaseToken,
+      deviceToken,
+      deviceName,
+      os,
+      osVersion,
+      appVersion,
+    } = req.body;
+    if (!deviceToken) throw new AppError(400, "Bad Request", 400);
 
-    const checkDevice = await Device.findOne({ deviceId });
+    const checkDevice = await Device.findOne({ deviceToken });
     if (checkDevice) {
       await Device.updateOne({ id: checkDevice.id }).set({
         firebaseToken,
@@ -60,7 +66,7 @@ module.exports = {
     } else {
       await Device.create({
         firebaseToken,
-        deviceId,
+        deviceToken,
         deviceName,
         os,
         osVersion,
@@ -97,7 +103,7 @@ module.exports = {
         password: hashPassword(body.password),
         nickName: generateUsername(),
         birthday: body.birthday,
-        deviceId: body.deviceId,
+        deviceToken: body.deviceToken,
       },
       oldOtpVerify,
       REGISTER_VERIFY_OTP_MAIL_TEMPLATE
@@ -203,7 +209,7 @@ module.exports = {
     checkPassword(exitsUser.password, body.password);
 
     await User.updateOne({ email: body.email }).set({
-      deviceId: body.deviceId,
+      deviceToken: body.deviceToken,
     });
 
     // if (body.needVerifyOtp == undefined || body.needVerifyOtp) {
@@ -288,7 +294,7 @@ module.exports = {
   }),
 
   loginWithGoogle: tryCatch(async (req, res) => {
-    const { idToken, deviceId } = req.body;
+    const { idToken, deviceToken } = req.body;
     const decodedToken = await authAdmin.auth().verifyIdToken(idToken);
     let checkUser = await User.findOne({ email: decodedToken.email });
     if (!checkUser) {
@@ -314,7 +320,7 @@ module.exports = {
         uId,
         avatarFrame: avatarFrame[0].id,
         avatarTitle: avatarTitle[0].id,
-        deviceId: deviceId,
+        deviceToken: deviceToken,
       }).fetch();
 
       if (!checkUser)
@@ -332,7 +338,7 @@ module.exports = {
     } else {
       console.log("Set device Id");
       await User.updateOne({ email: decodedToken.email?.toLowerCase() }).set({
-        deviceId: deviceId,
+        deviceToken: deviceToken,
       });
     }
 
@@ -356,7 +362,7 @@ module.exports = {
   }),
 
   loginWithFacebook: tryCatch(async (req, res) => {
-    const { idToken, deviceId } = req.body;
+    const { idToken, deviceToken } = req.body;
     const decodedToken = await authAdmin.auth().verifyIdToken(idToken);
     let checkUser = await User.findOne({ fbId: decodedToken.uid });
 
@@ -383,7 +389,7 @@ module.exports = {
         uId,
         avatarFrame: avatarFrame[0].id,
         avatarTitle: avatarTitle[0].id,
-        deviceId: deviceId,
+        deviceToken: deviceToken,
       }).fetch();
       if (!checkUser)
         throw new AppError(
@@ -401,7 +407,7 @@ module.exports = {
       await User.updateOne({
         fbId: decodedToken.uid,
       }).set({
-        deviceId: deviceId,
+        deviceToken: deviceToken,
       });
     }
 
@@ -617,10 +623,10 @@ module.exports = {
   }),
 
   logout: tryCatch(async (req, res) => {
-    const { deviceId } = req.body;
+    const { userId } = req.body;
 
-    await User.updateOne({ deviceId }).set({
-      deviceId: "",
+    await User.updateOne({ id: userId }).set({
+      deviceToken: "",
     });
 
     return res.status(200).json({

@@ -14,6 +14,7 @@ import { helper } from "../utils/helper";
 import { handleIncNumPromise } from "../services";
 import { getSortObject } from "../services/ComicService";
 import { ObjectId } from "mongodb";
+import { sendMutipleNotification } from "../../config/firebase/firebase";
 
 declare const sails: any;
 declare const Comic: any;
@@ -24,6 +25,7 @@ declare const Category: any;
 declare const InteractComic: any;
 declare const User: any;
 declare const Comment: any;
+declare const Notification: any;
 
 module.exports = {
   adminFind: tryCatch(async (req, res) => {
@@ -100,7 +102,19 @@ module.exports = {
       "avatar"
     );
 
-    const createdComic = await Comic.create({
+    const getUserFollowingAuthorPromise = User.find({
+      where: {
+        authorFollowing: {
+          contains: author,
+        },
+      },
+      select: ["deviceToken"],
+    });
+    const getAuthorPromise = Author.findOne({
+      where: { id: author },
+      select: ["name"],
+    });
+    const createComicPromise = Comic.create({
       name,
       description,
       author,
@@ -109,6 +123,11 @@ module.exports = {
       status,
       publishedAt: helper.convertToTimeStamp(publishedAt),
     }).fetch();
+    const [createdComic, listUser, checkAuthor] = await Promise.all([
+      createComicPromise,
+      getUserFollowingAuthorPromise,
+      getAuthorPromise,
+    ]);
     if (!createdComic)
       throw new AppError(
         400,
@@ -116,6 +135,31 @@ module.exports = {
         400
       );
 
+    let listDeviceToken: string[] = [];
+    let listNotificationObj: any[] = [];
+    for (let user of listUser) {
+      if (user.deviceToken) {
+        listDeviceToken.push(user.deviceToken);
+      }
+      listNotificationObj.push({
+        title: "Truyện mới",
+        tag: "system",
+        content: `${checkAuthor.name} vừa ra mắt bộ truyện ${name}`,
+        action: constants.NOTIFICATION_ACTION.NEW_COMIC,
+        receiver: user.id,
+        data: {
+          comic: createdComic.id,
+          author,
+        },
+      });
+    }
+
+    const createEachNotificationPromise =
+      Notification.createEach(listNotificationObj);
+    const sendNotificationPromise = sendMutipleNotification(listDeviceToken, {
+      title: "Truyện mới",
+      body: `${checkAuthor.name} vừa ra mắt bộ truyện ${name}`,
+    });
     Promise.all([
       Comic.addToCollection(createdComic.id, "categories", [
         ...new Set(categories),
@@ -123,6 +167,8 @@ module.exports = {
       Author.updateOne({ id: author }).set({ updatedComicAt: Date.now() }),
       handleIncNumPromise(author, "author", 1, "numOfComic"),
       handleIncNumPromise(categories, "category", 1, "numOfComic"),
+      createEachNotificationPromise,
+      sendNotificationPromise,
     ]);
 
     return res.status(200).json({ err: 200, message: "Thêm thành công" });
