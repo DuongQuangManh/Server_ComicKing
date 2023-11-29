@@ -118,6 +118,9 @@ module.exports.routes = {
   'POST /api/admin/editVipTicket': 'VipTicketController.edit',
   'POST /api/admin/addVipTicket': 'VipTicketController.add',
 
+  // notification
+  'POST /api/admin/addNotification': 'NotificationController.add',
+
   /**
     CLIENT 
   **/
