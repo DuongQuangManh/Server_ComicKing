@@ -84,10 +84,10 @@ module.exports.routes = {
   'POST /api/admin/detailDecorate': 'DecorateController.adminDetail',
 
   //vip
-  'POST /api/admin/addVip': 'VipController.add',
-  'POST /api/admin/editVip': 'VipController.edit',
-  'POST /api/admin/detailVip': 'VipController.adminDetail',
-  'POST /api/admin/findVip': 'VipController.adminFind',
+  // 'POST /api/admin/addVip': 'VipController.add',
+  // 'POST /api/admin/editVip': 'VipController.edit',
+  // 'POST /api/admin/detailVip': 'VipController.adminDetail',
+  // 'POST /api/admin/findVip': 'VipController.adminFind',
 
   //level
   'POST /api/admin/addLevel': 'LevelController.add',
@@ -120,6 +120,9 @@ module.exports.routes = {
 
   // notification
   'POST /api/admin/addNotification': 'NotificationController.add',
+  'POST /api/admin/editNotification': 'NotificationController.edit',
+  'POST /api/admin/detailNotification': 'NotificationController.adminDetail',
+  'POST /api/admin/findNotification': 'NotificationController.adminFind',
 
   /**
     CLIENT 
@@ -141,6 +144,9 @@ module.exports.routes = {
   'POST /api/user/changePasswordVerifyOtp': 'AuthController.changePasswordVerifyOtp',
   'POST /api/user/sendDeviceInfo': 'AuthController.sendDeviceInfo',
   'POST /api/user/logout': 'AuthController.logout',
+  'POST /api/user/getCountNewNotification': 'User.getCountNewNotification',
+  'POST /api/user/resetCountNewNotification': 'User.resetCountNewNotification',
+  'POST /api/user/getListNotification': 'User.getListNotification',
 
   // user
   'POST /api/user/getProfile': 'UserController.getProfile',
@@ -191,7 +197,7 @@ module.exports.routes = {
   'POST /api/user/findDecorate': 'DecorateController.clientFind',
 
   // vip
-  'POST /api/user/findVip': 'VipController.clientFind',
+  // 'POST /api/user/findVip': 'VipController.clientFind',
 
   // level
   'POST /api/user/findLevel': 'LevelController.clientFind',
@@ -211,12 +217,14 @@ module.exports.routes = {
   // attendance
   'POST /api/user/findAttendance': 'AttendanceController.clientFind',
 
+  // coin package, vipticket, transaction
   'POST /api/user/findCoinPackage': 'CoinPackageController.clientFind',
   'POST /api/user/createCoinPackageTransaction': 'TransactionController.createCoinPackageTransaction',
   'POST /api/user/findVipTicket': 'VipTicketController.clientFind',
   'POST /api/user/detailVipTicket': 'VipTicketController.clientDetail',
   'POST /api/user/createVipTicketTransaction': 'TransactionController.createVipTicketTransaction',
-  'POST /api/user/requestEndTransaction': 'TransactionController.requestEndTransaction'
-  
+  'POST /api/user/requestEndTransaction': 'TransactionController.requestEndTransaction',
 
+  // notification
+  'POST /api/user/getDetailNotification': 'Notification.clientDetail',
 };

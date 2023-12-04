@@ -55,7 +55,7 @@ export const generateOtp = (length = 6) => {
   for (let i = 0; i < length; i++) {
     otp += Math.floor(Math.random() * 10);
   }
-  return "000000";
+  return otp;
 };
 
 // handle otpVerify sent to user

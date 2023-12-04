@@ -125,10 +125,14 @@ module.exports = {
       throw new AppError(400, "Không thể thêm chapter vui lòng thử lại.", 400);
 
     let listDeviceToken: string[] = [];
+    let listUserId: string[] = [];
     let listNotificationObj: any[] = [];
     for (let user of listUser) {
       if (user.deviceToken) {
         listDeviceToken.push(user.deviceToken);
+      }
+      if (user.id) {
+        listUserId.push(user.id);
       }
       listNotificationObj.push({
         title: "Chapter mới",
@@ -153,7 +157,17 @@ module.exports = {
       title: "Chapter mới",
       body: `${checkComic.name} đã có thêm chapter mới`,
     });
-    Promise.all([createEachNotificationPromise, sendNotificationPromise]);
+    const incrementCountNotificationPromise = handleIncNumPromise(
+      listUserId,
+      "user",
+      1,
+      "countNewNotification"
+    );
+    Promise.all([
+      createEachNotificationPromise,
+      sendNotificationPromise,
+      incrementCountNotificationPromise,
+    ]);
 
     return res.status(200).json({
       err: 200,

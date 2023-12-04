@@ -13,8 +13,6 @@ module.exports = {
 
     deviceToken: { type: "string", required: true },
 
-    firebaseToken: { type: "string" },
-
     deviceName: { type: "string" },
 
     os: { type: "string" },

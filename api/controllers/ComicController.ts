@@ -136,10 +136,14 @@ module.exports = {
       );
 
     let listDeviceToken: string[] = [];
+    let listUserId: string[] = [];
     let listNotificationObj: any[] = [];
     for (let user of listUser) {
       if (user.deviceToken) {
         listDeviceToken.push(user.deviceToken);
+      }
+      if (user.id) {
+        listUserId.push(user.id);
       }
       listNotificationObj.push({
         title: "Truyện mới",
@@ -160,6 +164,12 @@ module.exports = {
       title: "Truyện mới",
       body: `${checkAuthor.name} vừa ra mắt bộ truyện ${name}`,
     });
+    const incrementCountNotificationPromise = handleIncNumPromise(
+      listUserId,
+      "user",
+      1,
+      "countNewNotification"
+    );
     Promise.all([
       Comic.addToCollection(createdComic.id, "categories", [
         ...new Set(categories),
@@ -169,6 +179,7 @@ module.exports = {
       handleIncNumPromise(categories, "category", 1, "numOfComic"),
       createEachNotificationPromise,
       sendNotificationPromise,
+      incrementCountNotificationPromise,
     ]);
 
     return res.status(200).json({ err: 200, message: "Thêm thành công" });

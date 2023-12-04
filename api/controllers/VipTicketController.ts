@@ -57,7 +57,6 @@ module.exports = {
       name,
       // image,
     } = req.body;
-    console.log(req.body);
     if (
       typeof price != "number" ||
       typeof duration != "number" ||

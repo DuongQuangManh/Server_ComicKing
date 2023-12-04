@@ -44,20 +44,13 @@ declare const Device: any;
 
 module.exports = {
   sendDeviceInfo: tryCatch(async (req, res) => {
-    const {
-      firebaseToken,
-      deviceToken,
-      deviceName,
-      os,
-      osVersion,
-      appVersion,
-    } = req.body;
+    const { deviceToken, deviceName, os, osVersion, appVersion } = req.body;
     if (!deviceToken) throw new AppError(400, "Bad Request", 400);
 
     const checkDevice = await Device.findOne({ deviceToken });
     if (checkDevice) {
       await Device.updateOne({ id: checkDevice.id }).set({
-        firebaseToken,
+        deviceToken,
         deviceName,
         os,
         osVersion,
@@ -65,7 +58,6 @@ module.exports = {
       });
     } else {
       await Device.create({
-        firebaseToken,
         deviceToken,
         deviceName,
         os,
@@ -109,12 +101,14 @@ module.exports = {
       REGISTER_VERIFY_OTP_MAIL_TEMPLATE
     );
 
-    Otp.create({
-      email: newOtpVerify.email,
-      code: newOtpVerify.code,
-      expiredAt: newOtpVerify.expiredAt,
-      otpType: newOtpVerify.otpType,
-    });
+    Promise.all([
+      Otp.create({
+        email: newOtpVerify.email,
+        code: newOtpVerify.code,
+        expiredAt: newOtpVerify.expiredAt,
+        otpType: newOtpVerify.otpType,
+      }),
+    ]);
     return res.status(200).json({
       err: 200,
       message: `Vui lòng xác minh mã Otp (6 chữ số) từ email ${body.email} để hoàn thành đăng ký.`,
@@ -450,12 +444,14 @@ module.exports = {
       FORGOT_VERIFY_OTP_MAIL_TEMPLATE
     );
 
-    Otp.create({
-      email: newOtpVerify.email,
-      code: newOtpVerify.code,
-      expiredAt: newOtpVerify.expiredAt,
-      otpType: newOtpVerify.otpType,
-    });
+    Promise.all([
+      Otp.create({
+        email: newOtpVerify.email,
+        code: newOtpVerify.code,
+        expiredAt: newOtpVerify.expiredAt,
+        otpType: newOtpVerify.otpType,
+      }),
+    ]);
 
     return res.status(200).json({
       err: 200,
@@ -533,12 +529,14 @@ module.exports = {
       email: body.email,
     }).set(otpObj);
 
-    Otp.create({
-      email: newOtpVerify.email,
-      code: newOtpVerify.code,
-      expiredAt: newOtpVerify.expiredAt,
-      otpType: newOtpVerify.otpType,
-    });
+    Promise.all([
+      Otp.create({
+        email: newOtpVerify.email,
+        code: newOtpVerify.code,
+        expiredAt: newOtpVerify.expiredAt,
+        otpType: newOtpVerify.otpType,
+      }),
+    ]);
 
     return res.status(200).json({
       err: 200,
@@ -570,12 +568,14 @@ module.exports = {
       CHANGE_VERIFY_OTP_MAIL_TEMPLATE
     );
 
-    Otp.create({
-      email: newOtpVerify.email,
-      code: newOtpVerify.code,
-      expiredAt: newOtpVerify.expiredAt,
-      otpType: newOtpVerify.otpType,
-    });
+    Promise.all([
+      Otp.create({
+        email: newOtpVerify.email,
+        code: newOtpVerify.code,
+        expiredAt: newOtpVerify.expiredAt,
+        otpType: newOtpVerify.otpType,
+      }),
+    ]);
 
     return res.status(200).json({
       err: 200,
