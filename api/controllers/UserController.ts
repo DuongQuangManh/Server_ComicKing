@@ -26,6 +26,7 @@ declare const Decorate: any;
 declare const Comment: any;
 declare const UserWallet: any;
 declare const Level: any;
+declare const Notification: any;
 
 module.exports = {
   find: tryCatch(async (req, res) => {
@@ -733,7 +734,10 @@ module.exports = {
       select: ["comic"],
     });
 
-    const getUserWallet =await UserWallet.findOne({where:{user:senderId},select:["exp"]});
+    const getUserWallet = await UserWallet.findOne({
+      where: { user: senderId },
+      select: ["exp"],
+    });
     if (!getUserWallet) throw new AppError(400, "Invalid User wallet.", 400);
 
     let getLevelPromise = null;
@@ -747,12 +751,12 @@ module.exports = {
       }).sort("index DESC");
     }
 
-    const [sender, chapter,level] = await Promise.all([
+    const [sender, chapter, level] = await Promise.all([
       getSenderPromise,
       getChapterPromise,
-      getLevelPromise
+      getLevelPromise,
     ]);
-   
+
     if (!sender) throw new AppError(400, "User is not exists in system", 400);
     if (!chapter)
       throw new AppError(400, "Chapter is not exists in system", 400);
@@ -770,7 +774,7 @@ module.exports = {
       comic: chapter.comic,
       senderInfo: {
         avatarFrame: avatarFrame?.image,
-        level:level?.[0] ? level[0].index : 0,
+        level: level?.[0] ? level[0].index : 0,
         fullName,
         image,
       },
@@ -815,7 +819,10 @@ module.exports = {
       select: [],
     });
 
-    const getUserWallet =await UserWallet.findOne({where:{user:senderId},select:["exp"]});
+    const getUserWallet = await UserWallet.findOne({
+      where: { user: senderId },
+      select: ["exp"],
+    });
     if (!getUserWallet) throw new AppError(400, "Invalid User wallet.", 400);
 
     let getLevelPromise = null;
@@ -828,11 +835,11 @@ module.exports = {
         limit: 1,
       }).sort("index DESC");
     }
-    
-    const [sender, comic,level] = await Promise.all([
+
+    const [sender, comic, level] = await Promise.all([
       getSenderPromise,
       getComicPromise,
-      getLevelPromise
+      getLevelPromise,
     ]);
     if (!sender) throw new AppError(400, "User is not exists in system", 400);
     if (!comic) throw new AppError(400, "Comic is not exists in system", 400);
@@ -848,7 +855,7 @@ module.exports = {
       comic: comic.id,
       senderInfo: {
         avatarFrame: avatarFrame?.image,
-        level:level?.[0] ? level[0].index : 0,
+        level: level?.[0] ? level[0].index : 0,
         fullName,
         image,
       },
@@ -888,7 +895,10 @@ module.exports = {
       select: ["comic", "chapter", "canContainComment"],
     });
 
-    const getUserWallet =await UserWallet.findOne({where:{user:senderId},select:["exp"]});
+    const getUserWallet = await UserWallet.findOne({
+      where: { user: senderId },
+      select: ["exp"],
+    });
     if (!getUserWallet) throw new AppError(400, "Invalid User wallet.", 400);
 
     let getLevelPromise = null;
@@ -902,11 +912,10 @@ module.exports = {
       }).sort("index DESC");
     }
 
-
-    const [sender, comment,level] = await Promise.all([
+    const [sender, comment, level] = await Promise.all([
       getSenderPromise,
       getCommentPromise,
-      getLevelPromise
+      getLevelPromise,
     ]);
     if (!sender) throw new AppError(400, "User is not exists in system", 400);
     if (!comment)
@@ -929,7 +938,7 @@ module.exports = {
       canContainComment: false,
       senderInfo: {
         avatarFrame: avatarFrame?.image,
-        level:level?.[0] ? level[0].index : 0,
+        level: level?.[0] ? level[0].index : 0,
         fullName,
         image,
       },
@@ -1129,6 +1138,65 @@ module.exports = {
       data: listComment,
       skip,
       limit,
+    });
+  }),
+
+  getListNotification: tryCatch(async (req, res) => {
+    const { userId, skip = 0, limit = 15 } = req.body;
+    if (typeof userId != "string") throw new AppError(400, "Bad Request", 400);
+
+    const listNotification = await Notification.find({
+      where: {
+        receiver: userId,
+      },
+    })
+      .skip(skip)
+      .limit(limit)
+      .sort("createdAt DESC");
+
+    if (!listNotification) throw new AppError(400, "Bad Request", 400);
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: listNotification,
+      skip,
+      limit,
+    });
+  }),
+
+  getCountNewNotification: tryCatch(async (req, res) => {
+    const { userId } = req.body;
+    if (typeof userId != "string") throw new AppError(400, "Bad Request", 400);
+
+    const user = await User.findOne({
+      where: {
+        id: userId,
+      },
+      select: ["countNewNotification"],
+    });
+
+    if (!user) throw new AppError(400, "Invalid User Id", 400);
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: user.countNewNotification,
+    });
+  }),
+
+  resetCountNewNotification: tryCatch(async (req, res) => {
+    const { userId } = req.body;
+    if (typeof userId != "string") throw new AppError(400, "Bad Request", 400);
+
+    await User.updateOne({ id: userId }).set({
+      countNewNotification: 0,
+    });
+
+    return res.status(200).json({
+      err: 200,
+      message: "Success",
+      data: 0,
     });
   }),
 };
