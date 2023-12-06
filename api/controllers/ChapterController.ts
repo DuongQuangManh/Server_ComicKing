@@ -91,6 +91,7 @@ module.exports = {
       "lastChapterIndex",
       "numOfChapter",
       "name",
+      "image",
     ]);
     if (!checkComic) throw new AppError(400, "Truyện không tồn tại", 400);
     const getUserFollowingComicPromise = User.find({
@@ -137,6 +138,7 @@ module.exports = {
       listNotificationObj.push({
         title: "Chapter mới",
         tag: "system",
+        image: checkComic.image,
         content: `${checkComic.name} đã có thêm chapter mới`,
         action: constants.NOTIFICATION_ACTION.NEW_CHAPTER,
         receiver: user.id,

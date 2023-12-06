@@ -112,7 +112,7 @@ module.exports = {
     });
     const getAuthorPromise = Author.findOne({
       where: { id: author },
-      select: ["name"],
+      select: ["name", "image"],
     });
     const createComicPromise = Comic.create({
       name,
@@ -148,7 +148,8 @@ module.exports = {
       listNotificationObj.push({
         title: "Truyện mới",
         tag: "system",
-        content: `${checkAuthor.name} vừa ra mắt bộ truyện ${name}`,
+        image: checkAuthor.image,
+        content: `${checkAuthor?.name} vừa ra mắt bộ truyện ${name}`,
         action: constants.NOTIFICATION_ACTION.NEW_COMIC,
         receiver: user.id,
         data: {
