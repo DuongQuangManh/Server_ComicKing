@@ -1142,12 +1142,13 @@ module.exports = {
   }),
 
   getListNotification: tryCatch(async (req, res) => {
-    const { userId, skip = 0, limit = 15 } = req.body;
+    const { userId, skip = 0, limit = 30, tag = "system" } = req.body;
     if (typeof userId != "string") throw new AppError(400, "Bad Request", 400);
 
     const listNotification = await Notification.find({
       where: {
         receiver: userId,
+        tag,
       },
     })
       .skip(skip)

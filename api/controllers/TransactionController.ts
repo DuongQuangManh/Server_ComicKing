@@ -5,9 +5,10 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-import { isNonNullChain } from "typescript";
+import { sendSingleNotification } from "../../config/firebase/firebase";
 import { constants } from "../constants/constants";
 import { AppError } from "../custom/customClass";
+import { handleIncNumPromise } from "../services";
 import tryCatch from "../utils/tryCatch";
 
 declare const CoinPackage: any;
@@ -15,6 +16,7 @@ declare const VipTicket: any;
 declare const User: any;
 declare const Transaction: any;
 declare const UserWallet: any;
+declare const Notification: any;
 
 module.exports = {
   createCoinPackageTransaction: tryCatch(async (req, res) => {
@@ -168,14 +170,21 @@ module.exports = {
       status: status,
       endedAt: Date.now(),
     });
+    const getUserPromise = User.findOne({
+      where: {
+        id: checkTransaction.user,
+      },
+      select: ["deviceToken"],
+    });
     const getUserWalletPromise =
       status == constants.TRANSACTION_STATUS.SUCCESS
         ? UserWallet.findOne({
             where: { user: checkTransaction.user },
           })
         : null;
-    const [userWallet] = await Promise.all([
+    const [userWallet, user] = await Promise.all([
       getUserWalletPromise,
+      getUserPromise,
       updateTransactionPromise,
     ]);
     if (status == constants.TRANSACTION_STATUS.SUCCESS) {
@@ -203,6 +212,37 @@ module.exports = {
       await UserWallet.updateOne({ id: userWallet.id }).set({
         ...updateUserWalletBody,
       });
+
+      sendSingleNotification(
+        user.deviceToken,
+        {
+          body: `Bạn đã hoàn thành ${checkTransaction.title} mệnh giá ${checkTransaction.detail?.price}`,
+          title: checkTransaction.title,
+        },
+        {}
+      );
+
+      const createNotificationPromise = Notification.create({
+        title: checkTransaction.title,
+        tag: "transaction",
+        // image: checkComic.image,
+        content: `Bạn đã hoàn thành ${checkTransaction.title} mệnh giá ${checkTransaction.detail?.price}`,
+        action: constants.NOTIFICATION_ACTION.NEW_CHAPTER,
+        receiver: user.id,
+        // data: {
+        //   comic: comic,
+        // },
+      });
+      const incrementCountNotificationPromise = handleIncNumPromise(
+        user.id,
+        "user",
+        1,
+        "countNewNotification"
+      );
+      Promise.all([
+        createNotificationPromise,
+        incrementCountNotificationPromise,
+      ]);
     }
     return res.status(200).json({
       err: 200,
